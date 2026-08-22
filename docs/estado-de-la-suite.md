@@ -8,9 +8,17 @@ código, mismas capas, misma base. Lo que cambia es dónde vive y cómo se compi
 Ya está **publicada** en <https://arlanzon29.github.io/SuiteFamilia/compra/>.
 
 La segunda aplicación se llama **Pendientes**, no `tareas` como decía antes
-este documento. Ya tiene boceto: lo que se leyó en él —lo que respeta, lo que
-hay que corregir al portarlo y lo que queda por decidir— está en
+este documento. Ya tiene boceto, y ya están tomadas las cuatro decisiones de
+producto que dejaba abiertas —se pueden borrar, un «hecho» se puede deshacer,
+se quedan las cuatro pestañas y fuera las filas de la suite en Ajustes—: todo
+eso, con lo que hay que corregir al portarlo, está en
 [`pendientes-boceto.md`](pendientes-boceto.md).
+
+Y queda escrita **la regla que ordena lo que viene**: `apps/compra` es el
+modelo y las demás aplicaciones copian de ella —arquitectura limpia con sus
+capas en español, `tokens.css` tal cual, y primero las pantallas contra
+memoria y después los casos de uso contra Supabase. En
+[`como-se-escriben-las-aplicaciones.md`](como-se-escriben-las-aplicaciones.md).
 
 Documento de traspaso de la suite. Lo que le pase a cada aplicación por dentro
 se cuenta en su propio documento —para la compra,

@@ -108,6 +108,23 @@ solo cambia cómo se escribe el `import`.
 
 ---
 
+## Escribir una aplicación nueva
+
+**`apps/compra` es el modelo, y las demás copian de ella.** Ante cualquier duda
+—cómo se nombra una carpeta, dónde vive una regla, cómo se pinta una fila— la
+respuesta es mirar la compra y hacer lo mismo. Es la única parte de la suite
+que ha pasado por la realidad: está terminada, publicada y en uso.
+
+Eso incluye la arquitectura limpia con sus cuatro capas en español, el sistema
+visual de `tokens.css` copiado tal cual, y el orden de trabajo: **primero las
+pantallas contra los repositorios en memoria, y solo después los casos de uso
+contra Supabase**.
+
+Está todo en
+[`docs/como-se-escriben-las-aplicaciones.md`](docs/como-se-escriben-las-aplicaciones.md).
+
+---
+
 ## Publicar
 
 Cada `push` a `main` compila todas las aplicaciones y las publica en GitHub

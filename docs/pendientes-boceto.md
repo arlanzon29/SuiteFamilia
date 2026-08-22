@@ -5,8 +5,8 @@ Fecha: **22 de agosto de 2026**.
 El boceto de la segunda aplicación de la suite está en
 [`Pendientes.html`](Pendientes.html), hecho con Claude Design. Este documento
 es lo que se vio al leerlo por dentro: qué respeta, qué hay que corregir al
-pasarlo a React y qué decisiones quedan por tomar. Se escribe ahora para que
-no haya que volver a leer las nueve pantallas cuando toque programar.
+pasarlo a React y qué se decidió sobre lo que dejaba abierto. Se escribe ahora
+para que no haya que volver a leer las nueve pantallas cuando toque programar.
 
 ---
 
@@ -81,25 +81,36 @@ la intención editorial, pero conviene dejarlo alineado a la izquierda.
 **El kicker dice literalmente «Suitefamilia»**, en minúsculas, y solo se ve
 bien por el `text-transform: uppercase`. Cosmético.
 
-## 4. Lo que queda por decidir
+## 4. Lo que se decidió
 
-Son decisiones de producto, y marcan cómo se escribe el dominio. El boceto no
-las resuelve:
+El boceto no resolvía cuatro cosas, y son decisiones de producto: marcan cómo
+se escribe el dominio. Quedaron cerradas el 22 de agosto de 2026.
 
-- **¿Se pueden borrar pendientes**, o solo darlos por hechos? En ninguna de
-  las nueve pantallas hay forma de borrar uno.
-- **¿Se puede deshacer un «hecho»?** En la pantalla 09 las tarjetas parecen
-  pulsables, pero no hay «volver a pendientes». La compra sí sabe reabrir una
-  lista cerrada.
-- **¿Se queda la pestaña Inicio?** Enseña un saludo, la fecha y dos filas. En
-  la compra, Inicio se gana la pestaña porque resume tres cuentas hechas en el
-  servidor y devuelve a la compra en curso; aquí no hace nada que la lista no
-  haga mejor. La alternativa son tres pestañas —Pendientes, Hechos, Ajustes— o
-  incluso dos, con lo hecho plegado dentro de la misma pantalla, que es lo que
-  hace la compra con las listas cerradas.
-- **En Ajustes, las filas de «Aplicaciones de la suite»** (Compra,
-  Pendientes) parecen navegación pero no llevan a ningún sitio. O son un
-  enlace a la otra aplicación —y entonces necesitan su flecha— o sobran.
+**Los pendientes se pueden borrar.** Uno apuntado por error no debe quedarse en
+«Hechos» fingiendo que se hizo. Va como acción secundaria **dentro de la
+ficha**, nunca en la fila de la lista, para que no se borre de un roce. Es
+además el gesto que la suite ya conoce: la compra tiene `borrar` en artículos y
+en supermercados.
+
+**Un «hecho» se puede deshacer.** Marcar hecho es un gesto de un toque y
+equivocarse es fácil. En datos no cuesta nada —es poner la fecha de realización
+a nulo— y es lo que ya hace la compra al reabrir una lista cerrada.
+
+**Se quedan las cuatro pestañas** del boceto: Inicio, Pendientes, Hechos y
+Ajustes. Es la duda que más se discutió, porque Inicio aquí no resume cuentas
+hechas en el servidor como en la compra; se mantiene igualmente, y las cuatro
+pantallas ya están dibujadas.
+
+**Fuera las filas de «Aplicaciones de la suite» de Ajustes.** Parecían
+navegación y no llevaban a ningún sitio. Ajustes se queda con tema, cuenta y
+desconectar.
+
+De la última sale un flanco abierto que no es de esta aplicación: al quitarlas
+**no queda ninguna forma de saltar de una aplicación a otra desde dentro**.
+Cada una se abre por su dirección o por su icono instalado. Eso empuja hacia
+poner portada en `/SuiteFamilia/`, que hoy da 404 y ya figuraba entre lo que
+queda por decidir en [`estado-de-la-suite.md`](estado-de-la-suite.md). No
+bloquea nada de Pendientes.
 
 ## 5. Cómo se lee el fichero por dentro
 
@@ -110,9 +121,29 @@ el navegador funciona, pero para portarlo hace falta el código fuente.
 Dentro hay dos etiquetas `<script>` con JSON: una de tipo
 `__bundler/manifest` —los recursos comprimidos: la letra, el motor— y otra de
 tipo `__bundler/template`, que es **la página entera como una cadena JSON**.
-Basta con parsear esa segunda y escribirla a un fichero para tener el marcado
-real: un componente `<x-dc>` con los estilos en línea y, al final, un
-`<script data-dc-script>` con la lógica del cambio de tema.
+
+Eso ya está hecho y guardado: el marcado real está en
+[`Pendientes-fuente.html`](Pendientes-fuente.html), 102 KB legibles con las
+nueve pantallas marcadas por `data-screen-label`, y lo saca
+[`../scripts/extrae-boceto.mjs`](../scripts/extrae-boceto.mjs):
+
+```bash
+node scripts/extrae-boceto.mjs docs/Pendientes.html
+```
+
+Lo que sale **no se puede abrir en el navegador** —las fuentes y el motor
+apuntan a recursos del empaquetado por identificador—, y no hace falta: es
+para leerlo. Dentro es un componente `<x-dc>` con los estilos en línea, un
+tablero de 375×812 por pantalla y, al final, un `<script data-dc-script>` con
+la lógica del cambio de tema.
+
+Dos rarezas del marcado, que conviene saber antes de copiar nada de ahí:
+
+- **Los atributos en camelCase van escapados.** `viewBox` aparece como
+  `sc-camel-view-box` (57 veces, en los iconos) y `onClick` como
+  `sc-camel-on-click` (10). Al portar se devuelven a su forma.
+- **Los `{{ ... }}` son enlaces del motor de Design**, casi todos del tema. En
+  React se sustituyen por estado de verdad: en la compra, `useTema`.
 
 Es la vía a seguir con los bocetos que vengan: se lee el fuente, no se
 reconstruye desde una captura.
