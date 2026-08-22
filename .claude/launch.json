@@ -1,0 +1,24 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "compra",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/compra"],
+      "port": 5173
+    },
+    {
+      "name": "compra-compilada",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--prefix", "apps/compra"],
+      "port": 4173,
+      "url": "http://localhost:4173"
+    },
+    {
+      "name": "compra-memoria",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/compra", "--", "--mode", "memoria", "--port", "5199"],
+      "port": 5199
+    }
+  ]
+}
