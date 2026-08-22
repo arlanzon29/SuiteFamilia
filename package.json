@@ -1,0 +1,14 @@
+{
+  "name": "suite-familia",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "instalar": "cd apps/compra && npm install",
+    "dev": "cd apps/compra && npm run dev",
+    "dev:compra": "cd apps/compra && npm run dev",
+    "build": "cd apps/compra && npm run build",
+    "typecheck": "cd apps/compra && npm run typecheck",
+    "copia": "powershell -ExecutionPolicy Bypass -File scripts/copia-seguridad.ps1"
+  }
+}

@@ -1,0 +1,414 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+import type { CasosDeUso, Instantanea } from '../../aplicacion'
+import type { Articulo, ItemLista, ResumenInicio } from '../../dominio/modelo'
+import type { Sesion } from '../../dominio/puertos'
+import { useNavegacion } from './useNavegacion'
+import { useTema } from './useTema'
+import { useFotos } from './useFotos'
+import type { Dialogo, HojaPrecio, Simulacion, Visor } from './rutas'
+
+const VACIO: Instantanea = { articulos: [], supermercados: [], precios: [], listas: [] }
+
+/**
+ * Único punto de contacto de la interfaz con la aplicación.
+ *
+ * Las pantallas leen `datos` (una instantánea de todo lo cargado) y llaman a
+ * `acciones`; nunca a un repositorio. Cada acción ejecuta su caso de uso y
+ * vuelve a cargar, para que no haya dos verdades.
+ *
+ * Hay **dos** cargas, y la diferencia importa:
+ *
+ * - `resumen` son las tres cuentas de inicio, resueltas en el servidor. Es lo
+ *   único que se pide al entrar.
+ * - `datos` es la instantánea completa —catálogo, tiendas, listas y el
+ *   histórico entero de precios—, y se pide **perezosamente**, la primera vez
+ *   que se sale de inicio. Antes se cargaba siempre al arrancar, así que abrir
+ *   la aplicación para ver «3 por coger» se traía todos los precios apuntados.
+ */
+type Contexto = {
+  casos: CasosDeUso
+  sesion: Sesion | null
+  comprobandoSesion: boolean
+  entrar: (email: string, contrasena: string) => Promise<void>
+  salir: () => Promise<void>
+
+  datos: Instantanea
+  cargando: boolean
+  error: string | null
+  recargar: () => Promise<void>
+  acciones: Acciones
+
+  /** Las cuentas de inicio. `null` mientras no ha llegado la primera carga. */
+  resumen: ResumenInicio | null
+  cargandoResumen: boolean
+  errorResumen: string | null
+  recargarResumen: () => Promise<void>
+
+  nav: ReturnType<typeof useNavegacion>
+  tema: ReturnType<typeof useTema>
+  imagenes: ReturnType<typeof useFotos>
+
+  q: string
+  setQ: (v: string) => void
+  /**
+   * El filtro «solo favoritos» del catálogo y del panel de añadir.
+   *
+   * Vive aquí y no en cada pantalla por lo mismo que `q`: las dos enseñan el
+   * mismo catálogo con la misma caja de buscar, y quien deja puesto el filtro
+   * en el catálogo espera encontrárselo puesto al añadir a una lista.
+   */
+  soloFav: boolean
+  setSoloFav: (v: boolean) => void
+  dlg: Dialogo | null
+  setDlg: (d: Dialogo | null) => void
+  hoja: HojaPrecio | null
+  setHoja: (h: HojaPrecio | null) => void
+  /** La foto ampliada. `null` es que no hay ninguna abierta. */
+  visor: Visor | null
+  setVisor: (v: Visor | null) => void
+  panelAnadir: boolean
+  setPanelAnadir: (v: boolean) => void
+  sim: Simulacion
+  setSim: (s: Simulacion) => void
+}
+
+/**
+ * Los casos de uso que modifican datos, ya envueltos para recargar al terminar.
+ *
+ * `marcarComprado` y `cambiarCantidad` van aparte porque no recargan: tocan un
+ * item, y el item lo arreglan en memoria. Ver `tras` y `enItems`.
+ */
+type Acciones = Pick<
+  CasosDeUso,
+  | 'crearArticulo'
+  | 'editarArticulo'
+  | 'borrarArticulo'
+  | 'crearSupermercado'
+  | 'renombrarSupermercado'
+  | 'borrarSupermercado'
+  | 'crearLista'
+  | 'duplicarLista'
+  | 'cerrarLista'
+  | 'reabrirLista'
+  | 'anadirArticuloALista'
+  | 'quitarArticuloDeLista'
+  | 'insertarDictado'
+  | 'guardarPrecio'
+> & {
+  marcarComprado: (listaId: string, artId: string, comprado: boolean) => Promise<void>
+  /** Estrella del catálogo. Tampoco recarga: ver `enArticulo`. */
+  marcarFavorito: (artId: string, favorito: boolean) => Promise<void>
+  /** `cant` es la cantidad resultante: llegar a cero saca el artículo. */
+  cambiarCantidad: (listaId: string, artId: string, cant: number) => Promise<void>
+}
+
+const Ctx = createContext<Contexto | null>(null)
+
+export const AppProvider = ({
+  casos,
+  children,
+}: {
+  casos: CasosDeUso
+  children: ReactNode
+}) => {
+  const [sesion, setSesion] = useState<Sesion | null>(null)
+  const [comprobandoSesion, setComprobandoSesion] = useState(true)
+
+  const [datos, setDatos] = useState<Instantanea>(VACIO)
+  const [cargando, setCargando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [resumen, setResumen] = useState<ResumenInicio | null>(null)
+  const [cargandoResumen, setCargandoResumen] = useState(false)
+  const [errorResumen, setErrorResumen] = useState<string | null>(null)
+
+  /**
+   * Si la instantánea completa ya se ha pedido alguna vez en esta sesión.
+   *
+   * Va en una ref y no en un estado porque solo decide **si toca cargar**, y
+   * como estado provocaría un render de más en cada acción. Lo leen dos
+   * sitios: la carga perezosa, para no repetirla, y las acciones, para saber
+   * si además del resumen hay una instantánea que refrescar.
+   */
+  const datosPedidos = useRef(false)
+
+  const [q, setQ] = useState('')
+  const [soloFav, setSoloFav] = useState(false)
+  const [dlg, setDlg] = useState<Dialogo | null>(null)
+  const [hoja, setHoja] = useState<HojaPrecio | null>(null)
+  const [visor, setVisor] = useState<Visor | null>(null)
+  const [panelAnadir, setPanelAnadir] = useState(false)
+  const [sim, setSim] = useState<Simulacion>(null)
+
+  const limpiaBusqueda = useCallback(() => setQ(''), [])
+  const nav = useNavegacion(limpiaBusqueda)
+  const tema = useTema()
+  const imagenes = useFotos(casos)
+  const { recargar: recargarImagenes, olvidar: olvidarImagenes } = imagenes
+
+  const recargar = useCallback(async () => {
+    setCargando(true)
+    try {
+      setDatos(await casos.cargarTodo())
+      setError(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se han podido cargar los datos.')
+    } finally {
+      setCargando(false)
+    }
+  }, [casos])
+
+  const recargarResumen = useCallback(async () => {
+    setCargandoResumen(true)
+    try {
+      setResumen(await casos.cargarResumen())
+      setErrorResumen(null)
+    } catch (e) {
+      setErrorResumen(e instanceof Error ? e.message : 'No se ha podido cargar el resumen.')
+    } finally {
+      setCargandoResumen(false)
+    }
+  }, [casos])
+
+  useEffect(() => {
+    let vivo = true
+    casos
+      .sesionActual()
+      .then((s) => {
+        if (vivo) setSesion(s)
+      })
+      .finally(() => {
+        if (vivo) setComprobandoSesion(false)
+      })
+    return () => {
+      vivo = false
+    }
+  }, [casos])
+
+  /**
+   * Al entrar, el resumen y las imágenes. La instantánea espera a que haga
+   * falta.
+   *
+   * Las imágenes van aquí y no en `cargarTodo` porque no cambian con los
+   * datos: son dos listados de Storage, se piden una vez y a partir de ahí
+   * solo se refrescan cuando alguien cambia una foto o renombra algo.
+   */
+  useEffect(() => {
+    if (sesion) {
+      void recargarResumen()
+      void recargarImagenes()
+    } else {
+      setDatos(VACIO)
+      setResumen(null)
+      olvidarImagenes()
+      datosPedidos.current = false
+    }
+  }, [sesion, recargarResumen, recargarImagenes, olvidarImagenes])
+
+  /**
+   * La carga perezosa de la instantánea.
+   *
+   * El disparador es salir de inicio, porque inicio es la única pantalla que
+   * se apaña con el resumen: las demás leen del catálogo, de las listas o del
+   * histórico. Se pide una sola vez por sesión; a partir de ahí la mantienen
+   * al día las acciones, como siempre.
+   */
+  useEffect(() => {
+    if (!sesion || nav.ruta.n === 'inicio' || datosPedidos.current) return
+    datosPedidos.current = true
+    void recargar()
+  }, [sesion, nav.ruta, recargar])
+
+  const entrar = useCallback(
+    async (email: string, contrasena: string) => {
+      setSesion(await casos.iniciarSesion(email, contrasena))
+    },
+    [casos],
+  )
+
+  const salir = useCallback(async () => {
+    await casos.cerrarSesion()
+    setSesion(null)
+    nav.pestana('inicio')
+  }, [casos, nav])
+
+  const acciones = useMemo<Acciones>(() => {
+    /**
+     * Envuelve un caso de uso para que lo cargado quede al día al acabar.
+     *
+     * El resumen se refresca siempre —cualquier acción puede mover una de sus
+     * cuentas: apuntar un precio baja «sin precio», marcar comprado baja
+     * «pendientes»—. La instantánea, solo si alguien la ha pedido ya; si se
+     * está en inicio y nunca se ha salido, no se descarga por una acción.
+     */
+    const tras =
+      <A extends unknown[], R>(fn: (...args: A) => Promise<R>) =>
+      async (...args: A): Promise<R> => {
+        const r = await fn(...args)
+        await Promise.all([recargarResumen(), datosPedidos.current ? recargar() : null])
+        return r
+      }
+
+    /**
+     * Aplica en la instantánea el cambio que el servidor **ya ha confirmado**.
+     *
+     * Esto no es actualización optimista: se llama después del `await`, así que
+     * lo que se pinta es lo que quedó guardado. Lo que se ahorra no es la
+     * espera, es la pregunta: marcar comprado no puede tocar un precio, ni una
+     * tienda, ni otra lista, así que volver a pedirlo todo era traerse una
+     * respuesta que ya teníamos.
+     */
+    const enItems = (listaId: string, f: (items: ItemLista[]) => ItemLista[]) =>
+      setDatos((d) => ({
+        ...d,
+        listas: d.listas.map((l) => (l.id === listaId ? { ...l, items: f(l.items) } : l)),
+      }))
+
+    /** Lo mismo, para un artículo del catálogo. */
+    const enArticulo = (artId: string, f: (a: Articulo) => Articulo) =>
+      setDatos((d) => ({
+        ...d,
+        articulos: d.articulos.map((a) => (a.id === artId ? f(a) : a)),
+      }))
+
+    /**
+     * Lo mismo, para las cuatro acciones que además mueven o borran una
+     * imagen: renombrar cambia el id, y el id **es** la ruta del fichero, así
+     * que el mapa de URLs que tenía la pantalla apunta al sitio de antes.
+     */
+    const trasImagen = <A extends unknown[], R>(fn: (...args: A) => Promise<R>) => {
+      const conDatos = tras(fn)
+      return async (...args: A): Promise<R> => {
+        const r = await conDatos(...args)
+        await recargarImagenes()
+        return r
+      }
+    }
+
+    return {
+      crearArticulo: tras(casos.crearArticulo),
+      editarArticulo: trasImagen(casos.editarArticulo),
+      borrarArticulo: trasImagen(casos.borrarArticulo),
+      crearSupermercado: tras(casos.crearSupermercado),
+      renombrarSupermercado: trasImagen(casos.renombrarSupermercado),
+      borrarSupermercado: trasImagen(casos.borrarSupermercado),
+      crearLista: tras(casos.crearLista),
+      duplicarLista: tras(casos.duplicarLista),
+      cerrarLista: tras(casos.cerrarLista),
+      reabrirLista: tras(casos.reabrirLista),
+      anadirArticuloALista: tras(casos.anadirArticuloALista),
+      quitarArticuloDeLista: tras(casos.quitarArticuloDeLista),
+      marcarComprado: async (listaId, artId, comprado) => {
+        await casos.marcarComprado(listaId, artId, comprado)
+        enItems(listaId, (items) =>
+          items.map((i) => (i.artId === artId ? { ...i, comprado } : i)),
+        )
+        // El resumen sí se pide: «pendientes» acaba de cambiar. Es una RPC que
+        // cuenta en el servidor y no devuelve ni una fila.
+        await recargarResumen()
+      },
+      /**
+       * Tampoco recarga, y aquí ni siquiera el resumen: el favorito no entra
+       * en ninguna de sus tres cuentas —artículos, sin precio y pendientes—.
+       * Recargar por una estrella sería pedir el catálogo entero para cambiar
+       * un booleano que ya conocemos.
+       */
+      marcarFavorito: async (artId, favorito) => {
+        await casos.marcarFavorito(artId, favorito)
+        enArticulo(artId, (a) => ({ ...a, favorito }))
+      },
+      cambiarCantidad: async (listaId, artId, cant) => {
+        // Quién decide si llegar a cero saca el artículo es el caso de uso;
+        // aquí solo se refleja lo que contesta.
+        const sigue = await casos.cambiarCantidad(listaId, artId, cant)
+        enItems(listaId, (items) =>
+          sigue
+            ? items.map((i) => (i.artId === artId ? { ...i, cant } : i))
+            : items.filter((i) => i.artId !== artId),
+        )
+        await recargarResumen()
+      },
+      insertarDictado: tras(casos.insertarDictado),
+      guardarPrecio: tras(casos.guardarPrecio),
+    }
+  }, [casos, recargar, recargarResumen, recargarImagenes])
+
+  const valor = useMemo<Contexto>(
+    () => ({
+      casos,
+      sesion,
+      comprobandoSesion,
+      entrar,
+      salir,
+      datos,
+      cargando,
+      error,
+      recargar,
+      acciones,
+      resumen,
+      cargandoResumen,
+      errorResumen,
+      recargarResumen,
+      nav,
+      tema,
+      imagenes,
+      q,
+      setQ,
+      soloFav,
+      setSoloFav,
+      dlg,
+      setDlg,
+      hoja,
+      setHoja,
+      visor,
+      setVisor,
+      panelAnadir,
+      setPanelAnadir,
+      sim,
+      setSim,
+    }),
+    [
+      casos,
+      sesion,
+      comprobandoSesion,
+      entrar,
+      salir,
+      datos,
+      cargando,
+      error,
+      recargar,
+      acciones,
+      resumen,
+      cargandoResumen,
+      errorResumen,
+      recargarResumen,
+      nav,
+      tema,
+      imagenes,
+      q,
+      soloFav,
+      dlg,
+      hoja,
+      visor,
+      panelAnadir,
+      sim,
+    ],
+  )
+
+  return <Ctx.Provider value={valor}>{children}</Ctx.Provider>
+}
+
+export const useApp = (): Contexto => {
+  const c = useContext(Ctx)
+  if (!c) throw new Error('useApp fuera de <AppProvider>')
+  return c
+}

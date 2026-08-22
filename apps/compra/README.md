@@ -1,0 +1,90 @@
+# Compra
+
+Lista de la compra compartida y comparativa de precios entre supermercados,
+para una casa de dos personas.
+
+Es una de las aplicaciones de [SuiteFamilia](../../README.md): comparte con las
+demás el proyecto de Supabase, y por tanto las cuentas y la sesión.
+
+Dos objetivos, en este orden:
+
+1. Saber qué hay que comprar y tacharlo rápido en el pasillo.
+2. Comparar el precio de cada artículo entre supermercados, **siempre por unidad
+   de medida** (€/l, €/kg, €/ud), para que la comparación sea honesta.
+
+---
+
+## Arrancar
+
+Desde la **raíz de la suite**, que es donde vive el `package.json` con los
+espacios de trabajo y el `.env` compartido:
+
+```bash
+npm install
+```
+
+```bash
+npm run dev -w apps/compra
+```
+
+Abre <http://localhost:5173>. Está pensada para móvil: en el navegador de
+escritorio, ponlo en vista de dispositivo a **375×812**.
+
+Se entra con la cuenta de Supabase de la casa. Para mirar la interfaz sin
+credenciales hay un modo con datos de ejemplo en memoria, que acepta cualquier
+correo con `@` y cualquier contraseña, y se reinicia al recargar:
+
+```bash
+npm run dev -w apps/compra -- --mode memoria
+```
+
+Otros comandos, también desde la raíz:
+
+```bash
+npm run build -w apps/compra
+```
+
+```bash
+npm run typecheck -w apps/compra
+```
+
+---
+
+## Copia de seguridad
+
+La copia es de la suite entera, no de esta aplicación: la base es una sola. Se
+lanza desde la raíz con `npm run copia`, y está explicada en el
+[README de la suite](../../README.md#copia-de-seguridad).
+
+---
+
+## Cómo está organizado
+
+Arquitectura limpia: **las dependencias apuntan hacia dentro**.
+
+```
+src/
+  dominio/          reglas de negocio y puertos — sin dependencias
+  aplicacion/       casos de uso
+  infraestructura/  implementaciones (Supabase, y memoria para el modo de ejemplo) + contenedor
+  presentacion/     React: pantallas, componentes, estado, estilos
+```
+
+Las pantallas llaman a casos de uso, nunca a un repositorio. El único sitio
+donde se elige la implementación es `src/infraestructura/contenedor.ts`.
+
+---
+
+## Documentación
+
+| Documento | Qué cuenta |
+|---|---|
+| [`docs/estado-del-proyecto.md`](docs/estado-del-proyecto.md) | Dónde está el trabajo y qué toca ahora |
+| [`docs/arquitectura.md`](docs/arquitectura.md) | Las capas, los puertos y cómo entra Supabase |
+| [`docs/base-de-datos.md`](docs/base-de-datos.md) | Diseño del esquema y sus motivos |
+| [`scripts/copia-seguridad.ps1`](../../scripts/copia-seguridad.ps1) | Volcado manual de la base y de las imágenes |
+| [`supabase/schema.sql`](../../supabase/schema.sql) | El esquema ejecutable |
+| [`prototipo/README.md`](prototipo/README.md) | El prototipo original: pantallas, tokens y copys |
+
+El prototipo de `prototipo/` es la **fuente de verdad visual**. Ábrelo en el
+navegador para comparar.

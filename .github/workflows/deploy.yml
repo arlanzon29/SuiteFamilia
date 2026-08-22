@@ -1,0 +1,86 @@
+# Compila todas las aplicaciones de la suite y las publica en GitHub Pages en
+# cada push a `main`.
+#
+# GitHub no ejecuta `npm run dev`: Pages solo sirve ficheros estáticos. Lo que
+# se publica es la carpeta `dist` de la raíz, que `npm run build` llena con una
+# subcarpeta por aplicación —`dist/compra/`, `dist/tareas/`…—, y cada una acaba
+# en su dirección: `https://arlanzon29.github.io/SuiteFamilia/compra/`.
+#
+# Requisitos, una sola vez y desde la web de GitHub:
+#
+#   1. Settings -> Pages -> Build and deployment -> Source: **GitHub Actions**.
+#   2. Settings -> Secrets and variables -> Actions -> New repository secret:
+#        VITE_SUPABASE_URL
+#        VITE_SUPABASE_ANON_KEY
+#      Hacen falta porque `.env` no está versionado. Vite las incrusta en el
+#      paquete al compilar, así que acaban siendo públicas: es el diseño de
+#      siempre —quien protege los datos es el RLS—, no un descuido.
+#
+#      Son las mismas para todas las aplicaciones: la suite entera tira de un
+#      solo proyecto de Supabase, que es lo que hace que la familia tenga una
+#      única cuenta para todo.
+
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permite lanzarlo a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Si se empujan dos commits seguidos, que el segundo espere en vez de pisar al
+# primero a medio desplegar.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          # Sin espacios de trabajo no hay un `package-lock.json` en la raíz:
+          # cada aplicación tiene el suyo (ver docs/estado-de-la-suite.md §5
+          # bis, que cuenta por qué). Hay que nombrarlos todos para que el
+          # caché sepa cuándo cambian.
+          cache-dependency-path: apps/*/package-lock.json
+
+      # Un bloque por aplicación: instala y compila en su carpeta. `npm ci` en
+      # vez de `npm install` instala exactamente lo que dice el lock, sin
+      # actualizar nada por su cuenta.
+      #
+      # Cada aplicación escribe en su propia subcarpeta de `dist` en la raíz
+      # —lo fija el `outDir` de su vite.config.ts—, así que no se pisan y al
+      # final queda una sola carpeta lista para publicar.
+      - run: npm ci
+        working-directory: apps/compra
+
+      - run: npm run build
+        working-directory: apps/compra
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  desplegar:
+    needs: compilar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v5
