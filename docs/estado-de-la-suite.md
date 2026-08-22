@@ -7,6 +7,11 @@ queda como `apps/compra`. La aplicación no se ha tocado por dentro: mismo
 código, mismas capas, misma base. Lo que cambia es dónde vive y cómo se compila.
 Ya está **publicada** en <https://arlanzon29.github.io/SuiteFamilia/compra/>.
 
+La segunda aplicación se llama **Pendientes**, no `tareas` como decía antes
+este documento. Ya tiene boceto: lo que se leyó en él —lo que respeta, lo que
+hay que corregir al portarlo y lo que queda por decidir— está en
+[`pendientes-boceto.md`](pendientes-boceto.md).
+
 Documento de traspaso de la suite. Lo que le pase a cada aplicación por dentro
 se cuenta en su propio documento —para la compra,
 [`../apps/compra/docs/estado-del-proyecto.md`](../apps/compra/docs/estado-del-proyecto.md).
@@ -18,7 +23,7 @@ se cuenta en su propio documento —para la compra,
 | Aplicación | Estado | Dirección |
 |---|---|---|
 | `apps/compra` | Terminada, publicada | <https://arlanzon29.github.io/SuiteFamilia/compra/> |
-| tareas | Sin empezar — es lo siguiente | `/SuiteFamilia/tareas/` |
+| `apps/pendientes` | Sin empezar — hay boceto, es lo siguiente | `/SuiteFamilia/pendientes/` |
 
 **Publicada** el 22 de agosto de 2026 en
 <https://github.com/arlanzon29/SuiteFamilia>, repositorio **público** —con el
@@ -59,7 +64,7 @@ SuiteFamilia, y el original solo se mira.
 El RLS del esquema dice «usuarios autenticados»: quien tiene cuenta en el
 proyecto de Supabase lo ve todo. Eso *es* la familia, y por eso el esquema y las
 migraciones están en `supabase/` de la **raíz**, no dentro de una aplicación.
-Las tablas de tareas irán al mismo sitio, con la numeración de migraciones
+Las tablas de Pendientes irán al mismo sitio, con la numeración de migraciones
 siguiendo donde iba.
 
 De ahí salen dos cosas que no hay que programar:
@@ -91,7 +96,7 @@ sacado todavía a un paquete compartido.
 
 **Por qué:** con una sola aplicación no hay forma de saber qué comparte de
 verdad con las que aún no existen. Una abstracción adivinada cuesta más de
-deshacer que la duplicación que evita. Cuando tareas esté escrita se verá qué
+deshacer que la duplicación que evita. Cuando Pendientes esté escrita se verá qué
 se repitió de verdad, y eso —y solo eso— es lo que se extrae.
 
 ## 5 bis. Sin espacios de trabajo: `D:` es exFAT
