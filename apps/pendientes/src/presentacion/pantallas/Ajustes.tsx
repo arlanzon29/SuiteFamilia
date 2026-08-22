@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useApp } from '../estado/AppProvider'
+import { Aviso, textoError } from '../componentes/Aviso'
 import { IconoDesconectar } from '../iconos'
 
 /**
@@ -17,6 +19,27 @@ import { IconoDesconectar } from '../iconos'
  */
 export const Ajustes = () => {
   const { sesion, salir, tema } = useApp()
+  const [error, setError] = useState<string | null>(null)
+  const [saliendo, setSaliendo] = useState(false)
+
+  /**
+   * Desconectar ya llama a Supabase, y por tanto ya puede fallar de verdad:
+   * sin cobertura, `signOut` no llega a salir. El `void salir()` de antes se
+   * tragaba ese fallo y dejaba el botón mudo, que es lo peor que puede pasar
+   * aquí —quien lo pulsa se cree fuera y sigue dentro—. Ahora el fallo se
+   * enseña y la sesión se queda como estaba.
+   */
+  const desconectar = async () => {
+    setSaliendo(true)
+    setError(null)
+    try {
+      await salir()
+    } catch (e) {
+      setError(textoError(e))
+    } finally {
+      setSaliendo(false)
+    }
+  }
 
   return (
     <div
@@ -78,13 +101,15 @@ export const Ajustes = () => {
         <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-600)' }}>
           Es la misma cuenta de la lista de la compra: toda la suite comparte una sola.
         </p>
+        {error && <Aviso>{error}</Aviso>}
         <button
           className="btn btn-secondary"
           style={{ minHeight: 52, fontSize: 16, marginTop: 4 }}
-          onClick={() => void salir()}
+          onClick={() => void desconectar()}
+          disabled={saliendo}
         >
           <IconoDesconectar size={18} />
-          Desconectar
+          {saliendo ? 'Desconectando…' : 'Desconectar'}
         </button>
       </section>
 

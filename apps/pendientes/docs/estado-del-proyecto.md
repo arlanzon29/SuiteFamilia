@@ -2,17 +2,19 @@
 
 Última actualización: **22 de agosto de 2026**.
 
-Lo último: **Pendientes existe**. Las nueve pantallas del boceto están
-escritas en React con las cuatro capas de la compra, corriendo contra
-repositorios en memoria con una semilla realista. No hay nada de Supabase
-todavía —ni migración, ni implementación—: ese es el paso siguiente, y es
-deliberado que vaya después.
+Lo último: **la cuenta ya es de verdad**. La autenticación entra contra
+Supabase Auth con la misma cuenta de la compra —una sola para toda la suite—,
+y el contenedor elige según `haySupabase` igual que allí. Los pendientes
+siguen en memoria: la tabla es el paso siguiente.
+
+Antes: **Pendientes existe**. Las nueve pantallas del boceto están escritas en
+React con las cuatro capas de la compra, corriendo contra repositorios en
+memoria con una semilla realista.
 
 > **Lo que queda por comprobar de verdad.** La aplicación compila, pasa
-> `tsc --noEmit` y arranca, y se han visto **dos** pantallas en el navegador:
-> Acceso e Inicio, en tema claro. Las otras siete **no se han mirado**, ni en
-> claro ni en oscuro: la herramienta de clicks del navegador se colgaba en cada
-> pulsación y no se pudo recorrer la aplicación. Está en §5, con lo que hay que
+> `tsc --noEmit` y arranca. Del recorrido de §5 están vistos los pasos 1 y 2
+> —Acceso e Inicio— en claro **y** en oscuro, y suelto el 12 en su parte de
+> desconectar. Los demás **no se han mirado**. Está en §5, con lo que hay que
 > hacer exactamente.
 
 Este documento cuenta lo de dentro de esta aplicación. Lo que afecta a la suite
@@ -28,8 +30,9 @@ entera va en [`../../../docs/estado-de-la-suite.md`](../../../docs/estado-de-la-
 | Las nueve pantallas | escritas | ✅ |
 | `tsc --noEmit` | limpio | ✅ |
 | Arranque en modo memoria | arranca y pinta | ✅ |
-| Recorrido de las nueve pantallas, claro y oscuro | **sin hacer** | ⬜ |
-| Migración y repositorios de Supabase | **sin empezar**, es lo siguiente | ⬜ |
+| Autenticación contra Supabase Auth | escrita y probada en el navegador | ✅ |
+| Recorrido de las nueve pantallas, claro y oscuro | **a medias**: pasos 1, 2 y el desconectar del 12 | 🟨 |
+| Migración y repositorio de pendientes en Supabase | **sin empezar**, es lo siguiente | ⬜ |
 | Entrada en el flujo de despliegue | **sin hacer**, y a propósito | ⬜ |
 
 No está en el despliegue porque no tiene sentido publicar algo que solo
@@ -58,15 +61,23 @@ no chocan con los de la compra:
 | `pendientes-compilada` | 4174 | sirve lo ya compilado |
 | `pendientes-memoria` | 5200 | desarrollo con `--mode memoria` |
 
-**Hoy las tres hacen lo mismo**, y conviene saberlo: `--mode memoria` en la
-compra vacía las dos variables de Supabase para que `haySupabase` salga falso;
-aquí no hay Supabase que apagar, así que el modo no cambia nada. La entrada se
-crea ya porque es la que empezará a distinguir en cuanto entren los
-repositorios de verdad, y porque las tres entradas por aplicación son la forma
-de la suite.
+**`pendientes-memoria` ya distingue de verdad**, desde que la autenticación es
+la de Supabase. `--mode memoria` carga el `.env.memoria` de la raíz, que vacía
+las dos variables para que `haySupabase` salga falso; con eso la autenticación
+vuelve a ser la simulada. Las otras dos entradas leen el `.env` de la raíz y
+piden una cuenta de verdad. Hasta este cambio las tres hacían lo mismo, y por
+eso la entrada estaba creada de antemano.
 
-Se entra con cualquier correo que lleve «@» y cualquier contraseña: la
-autenticación es simulada, la misma que la de la compra sin `.env`.
+Con lo cual, **cómo se entra depende de la entrada**:
+
+| Entrada | Autenticación | Cómo se entra |
+|---|---|---|
+| `pendientes`, `pendientes-compilada` | Supabase Auth | cuenta de verdad, la misma de la compra |
+| `pendientes-memoria` | simulada | cualquier correo con «@» y cualquier contraseña |
+
+Para revisar la interfaz —el recorrido del apartado 5, sin ir más lejos— la
+entrada es `pendientes-memoria`: no hace falta credencial y los datos siguen
+siendo los de la semilla.
 
 ## 3. Las capas
 
@@ -153,10 +164,22 @@ es una regla de la aplicación, no un detalle de la caja de texto ni de la tabla
 
 ### `infraestructura/`
 
-`contenedor.ts` es el único sitio donde se elige implementación, y hoy solo hay
-una. **No lleva todavía la comprobación de `.env` de la compra**: mientras no
-exista la implementación de Supabase, elegir entre dos no es una decisión sino
-un `if` que siempre cae del mismo lado. Entrará con ella.
+`contenedor.ts` es el único sitio donde se elige implementación, y **ya lleva la
+comprobación de `haySupabase` de la compra**: con `.env` la autenticación es
+Supabase Auth, sin él es la simulada.
+
+De momento eso deja un **modo mixto, y a propósito**: la cuenta es real y los
+pendientes siguen en memoria. Es el mismo camino que recorrió la compra, donde
+los puertos entraron de uno en uno y no todos a la vez; aquí el orden lo marca
+lo que existe, porque la cuenta ya estaba creada en Supabase y es la misma de
+la compra, mientras que la tabla `pendientes` no tiene todavía ni migración.
+La ventaja de tener un solo sitio donde se decide es justo esta: el modo mixto
+se lee entero en diez líneas y se ve qué es real y qué no.
+
+`supabase/cliente.ts` es copia del de la compra, y `supabase/autenticacion.ts`
+también salvo el `import` de `contratos`. No se extrae todavía a un paquete
+común por lo que dice el documento de la suite: primero se ve qué se repite de
+verdad al terminar la fase de Supabase, y entonces se extrae.
 
 `memoria/semilla.ts` trae once pendientes —cinco por hacer, seis resueltos— con
 contenido de una casa de verdad: la caldera, el filtro del extractor, la ITV, la
@@ -252,10 +275,28 @@ quedaba medio vacía en un móvil de 812 px.
 
 ## 5. Lo que hay que comprobar antes de dar esto por bueno
 
-No se ha recorrido la aplicación en el navegador. **Nada de lo de abajo está
-verificado**, más allá de que Acceso e Inicio se pintan bien en claro.
+El recorrido está **empezado, no terminado**. Lo comprobado hasta ahora, en
+`pendientes-memoria` a 375×812 y en los dos temas:
 
-El recorrido, en orden, en `pendientes-memoria` y a 375×812:
+- **Paso 1, Acceso.** Entra con un correo con «@» y cualquier contraseña.
+  Comprobado además el fallo: con la contraseña vacía sale «Correo o contraseña
+  incorrectos.», y el aviso **se lee bien en oscuro** —filete de oro sobre
+  fondo de acento, no se pierde contra el fondo—. Conviene saber que el campo
+  de contraseña lleva «••••••••» de marcador de posición y **parece relleno
+  cuando está vacío**: es lo que hace creer que el botón no responde.
+- **Paso 2, Inicio.** Saludo, fecha y los cinco más antiguos con «hace N días».
+- **Paso 12, a medias.** Desconectar vuelve a Acceso, borra la sesión guardada
+  y no deja errores en consola. El tema claro/oscuro del mismo paso sigue sin
+  probarse a conciencia.
+
+Y una comprobación que no estaba en la lista, porque entonces no había qué
+comprobar: en la entrada `pendientes`, con el `.env` de la raíz, el login sale
+a `/auth/v1/token?grant_type=password` del proyecto y el servidor rechaza unas
+credenciales que la simulada habría aceptado. Es decir: la autenticación real
+está en el camino, no solo escrita.
+
+**Lo demás sigue sin mirarse.** El recorrido entero, en orden, en
+`pendientes-memoria` y a 375×812:
 
 1. **Acceso** → entrar con cualquier correo con «@».
 2. **Inicio**: saludo, fecha larga, los cinco más antiguos con «hace N días».
@@ -277,20 +318,32 @@ El recorrido, en orden, en `pendientes-memoria` y a 375×812:
     inventado los colores y donde más fácil es que algo se pierda contra el
     fondo.
 
-Un aviso de método: la herramienta de clicks del navegador se colgaba en cada
-pulsación durante esta sesión. Si vuelve a pasar, cerrar y reabrir el panel del
-navegador lo arregló otras veces.
+Dos avisos de método. La herramienta de clicks del navegador se colgaba en cada
+pulsación; si vuelve a pasar, cerrar y reabrir el panel del navegador lo
+arregló otras veces. Y hay una salida por si se vuelve a colgar: pulsar por
+JavaScript desde el panel —`.click()` sobre el botón— dispara el mismo camino
+de React, y así se comprobó todo lo de arriba.
+
+El recorrido va en `pendientes-memoria` **y ahora es obligatorio que sea ahí**:
+las otras dos entradas piden una cuenta de verdad desde que la autenticación es
+la de Supabase.
 
 ## 6. Lo siguiente: Supabase
 
-Y solo eso. El trabajo es **de infraestructura**:
+Y solo eso. El trabajo es **de infraestructura**, y va por la mitad:
 
-1. La migración en `supabase/` de la raíz, con la numeración de la suite
+1. ✅ `infraestructura/supabase/cliente.ts` y la implementación de
+   `ServicioAutenticacion` contra Supabase Auth.
+2. ✅ `contenedor.ts`: elegir según `haySupabase`, como hace la compra.
+3. ⬜ La migración en `supabase/` de la raíz, con la numeración de la suite
    siguiendo donde iba. Una tabla, `pendientes`, con las mismas cuatro columnas
    y el RLS de «usuarios autenticados» que ya usa el resto de la suite.
-2. `infraestructura/supabase/cliente.ts` y la implementación de
-   `RepositorioPendientes` y `ServicioAutenticacion` contra ella.
-3. `contenedor.ts`: elegir según `haySupabase`, como hace la compra.
+4. ⬜ La implementación de `RepositorioPendientes` contra esa tabla, y cambiar
+   en `contenedor.ts` la única línea que hoy sigue montando el repositorio en
+   memoria dentro del camino de Supabase.
+
+La autenticación fue primero porque era lo único que ya tenía con qué hablar:
+la cuenta existe en Supabase desde la compra. La tabla hay que crearla.
 
 Ni el dominio, ni los casos de uso, ni las pantallas. Si al hacerlo hay que
 tocar alguno, es señal de que algo se coló de la capa de fuera hacia dentro —y

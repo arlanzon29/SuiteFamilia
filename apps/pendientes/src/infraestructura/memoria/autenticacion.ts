@@ -6,9 +6,11 @@ const CLAVE = 'pendientes.sesion'
  * Autenticación simulada: valida lo mismo que la compra —el correo lleva «@» y
  * la contraseña no está vacía— y recuerda la sesión en el navegador.
  *
- * Las cuentas se crean a mano y no hay registro; cuando entre Supabase Auth,
- * esta implementación se cambia por una que llame a `signInWithPassword`. La
- * cuenta es la misma que la de la compra: una sola base para toda la suite.
+ * Ya no es la única: `supabase/autenticacion.ts` es la de verdad, y el
+ * contenedor elige entre las dos según haya `.env`. Esta se queda —no se
+ * borra— porque es la que permite arrancar el proyecto recién clonado y
+ * revisar la interfaz sin credenciales, que es justo para lo que sirve la
+ * entrada `pendientes-memoria`.
  */
 export const autenticacionMemoria = (): ServicioAutenticacion => ({
   async sesionActual(): Promise<Sesion | null> {
