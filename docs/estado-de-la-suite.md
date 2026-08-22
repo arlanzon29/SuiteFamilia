@@ -5,6 +5,7 @@
 Lo último: **se crea SuiteFamilia** y se trae dentro la lista de la compra, que
 queda como `apps/compra`. La aplicación no se ha tocado por dentro: mismo
 código, mismas capas, misma base. Lo que cambia es dónde vive y cómo se compila.
+Ya está **publicada** en <https://arlanzon29.github.io/SuiteFamilia/compra/>.
 
 Documento de traspaso de la suite. Lo que le pase a cada aplicación por dentro
 se cuenta en su propio documento —para la compra,
@@ -14,14 +15,29 @@ se cuenta en su propio documento —para la compra,
 
 ## 1. Dónde estamos
 
-| Aplicación | Estado | Dirección prevista |
+| Aplicación | Estado | Dirección |
 |---|---|---|
-| `apps/compra` | Terminada y en uso | `/SuiteFamilia/compra/` |
+| `apps/compra` | Terminada, publicada | <https://arlanzon29.github.io/SuiteFamilia/compra/> |
 | tareas | Sin empezar — es lo siguiente | `/SuiteFamilia/tareas/` |
 
-**Todavía sin publicar.** El repositorio es local: no hay nada en GitHub ni en
-Pages. Mientras tanto, la familia sigue usando la aplicación de siempre en
+**Publicada** el 22 de agosto de 2026 en
+<https://github.com/arlanzon29/SuiteFamilia>, repositorio **público** —con el
+plan gratuito, Pages solo funciona en públicos—, con *Source: GitHub Actions* y
+los dos secretos `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
+
+Comprobado sobre lo publicado: la pantalla de entrada se pinta, el paquete lleva
+la URL y la clave publicable —**no** la secreta; lo único que aparece de
+`sb_secret_` es una comprobación de formato dentro de la propia librería de
+Supabase—, y el manifiesto responde con sus tres iconos, así que se instala en
+el móvil desde la dirección nueva.
+
+Mientras tanto, la familia sigue usando la aplicación de siempre en
 <https://arlanzon29.github.io/ListaCompra/>, que **no se ha tocado**.
+
+**Tropiezo de la primera vez, por si se repite con otro repositorio:** el primer
+despliegue falla si *Settings → Pages → Source* no estaba ya en «GitHub Actions»
+cuando arrancó la ejecución. Se arregla poniéndolo y repitiendo la ejecución
+desde Actions con *Re-run all jobs*; no hace falta volver a subir nada.
 
 ## 2. El original se queda donde está
 
@@ -109,5 +125,7 @@ abierta.
 - **Cuándo se archiva el original**, y avisar a la familia de que reinstale la
   aplicación desde la dirección nueva. La instalada apunta a `/ListaCompra/` y
   no se entera del cambio sola.
-- **El nombre del repositorio en GitHub**, que fija la dirección: hoy los
-  ficheros dan por hecho `SuiteFamilia`.
+
+Ya no está pendiente el nombre del repositorio: es `SuiteFamilia`, y con él la
+dirección `/SuiteFamilia/compra/` que llevan escrita el `vite.config.ts` de la
+aplicación y el flujo de despliegue.
