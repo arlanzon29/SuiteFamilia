@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../estado/AppProvider'
 import { pendiente } from '../estado/consultas'
 import { Aviso, textoError } from '../componentes/Aviso'
-import { fechaLarga, hace } from '../formato'
+import { cuandoToca, diaCorto, fechaLarga, hace, quien } from '../formato'
 import { IconoBorrar, IconoDeshacer, IconoHecho } from '../iconos'
 
 /**
@@ -19,7 +19,7 @@ import { IconoBorrar, IconoDeshacer, IconoHecho } from '../iconos'
  * entiende la intención editorial, pero se lee peor.
  */
 export const Ficha = ({ id }: { id: string }) => {
-  const { casos, datos, acciones, setDlg } = useApp()
+  const { casos, datos, acciones, setDlg, sesion } = useApp()
   const [error, setError] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const hoy = casos.hoy()
@@ -32,7 +32,7 @@ export const Ficha = ({ id }: { id: string }) => {
     setError(null)
     setOcupado(true)
     try {
-      if (p.hecho) await acciones.deshacerHecho(p.id)
+      if (p.finalizado) await acciones.deshacerHecho(p.id)
       else await acciones.darPorHecho(p.id)
     } catch (e) {
       setError(textoError(e))
@@ -41,7 +41,7 @@ export const Ficha = ({ id }: { id: string }) => {
     }
   }
 
-  const parrafos = p.comentario.split('\n').filter((l) => l.trim())
+  const parrafos = p.descripcion.split('\n').filter((l) => l.trim())
 
   return (
     <div
@@ -72,16 +72,53 @@ export const Ficha = ({ id }: { id: string }) => {
           marginBottom: 18,
         }}
       >
-        <Fecha rotulo="Se anotó" valor={fechaLarga(p.creado)} pie={hace(p.creado, hoy)} />
+        <Fecha
+          rotulo="Se anotó"
+          valor={fechaLarga(p.creado)}
+          pie={`${hace(p.creado, hoy)} · ${quien(p.creadoPor, sesion?.id)}`}
+        />
         <div style={{ width: 1, background: 'var(--color-divider)' }} />
         <Fecha
           rotulo="Se hizo"
-          valor={p.hecho ? fechaLarga(p.hecho) : '—'}
-          pie={p.hecho ? hace(p.hecho, hoy) : 'todavía por hacer'}
-          apagado={!p.hecho}
+          valor={p.finalizado ? fechaLarga(p.finalizado) : '—'}
+          pie={
+            p.finalizado
+              ? `${hace(p.finalizado, hoy)} · ${quien(p.finalizadoPor, sesion?.id)}`
+              : 'todavía por hacer'
+          }
+          apagado={!p.finalizado}
           sangrado
         />
       </div>
+
+      {/*
+        La fecha prevista solo se enseña si la hay: la mayoría de lo que se
+        apunta en una casa es «alguna vez», y una línea que dijera «sin fecha»
+        en casi todas las fichas sería ruido.
+
+        Va fuera del bloque de las dos fechas a propósito. Aquéllas son
+        registro —lo que pasó—; ésta es un plan, y además es la única de las
+        tres que se puede editar.
+      */}
+      {p.fechaPrevista && !p.finalizado && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 8,
+            marginBottom: 18,
+            fontSize: 13,
+          }}
+        >
+          <span className="kicker-neutral">Toca el</span>
+          <span className="cifra" style={{ fontSize: 15 }}>
+            {diaCorto(p.fechaPrevista)}
+          </span>
+          <span style={{ color: 'var(--color-neutral-600)' }}>
+            {cuandoToca(p.fechaPrevista, hoy)}
+          </span>
+        </div>
+      )}
 
       {parrafos.length > 0 ? (
         <div style={{ fontSize: 15, lineHeight: 1.55, textWrap: 'pretty' }}>
@@ -93,7 +130,7 @@ export const Ficha = ({ id }: { id: string }) => {
         </div>
       ) : (
         <p style={{ margin: 0, fontSize: 15, color: 'var(--color-neutral-600)' }}>
-          Sin comentario. El título lo dice todo.
+          Sin descripción. El título lo dice todo.
         </p>
       )}
 
@@ -115,13 +152,13 @@ export const Ficha = ({ id }: { id: string }) => {
         }}
       >
         <button
-          className={p.hecho ? 'btn btn-secondary' : 'btn btn-primary btn-tinte'}
+          className={p.finalizado ? 'btn btn-secondary' : 'btn btn-primary btn-tinte'}
           style={{ width: '100%', minHeight: 52, fontSize: 16 }}
           onClick={() => void cambiarEstado()}
           disabled={ocupado}
         >
-          {p.hecho ? <IconoDeshacer size={18} /> : <IconoHecho size={18} />}
-          {p.hecho ? 'Volver a dejarlo pendiente' : 'Darlo por hecho'}
+          {p.finalizado ? <IconoDeshacer size={18} /> : <IconoHecho size={18} />}
+          {p.finalizado ? 'Volver a dejarlo pendiente' : 'Darlo por hecho'}
         </button>
 
         {/*

@@ -36,7 +36,7 @@ export const porMeses = (ps: Pendiente[]): GrupoMes[] => {
   // `hechos` ya viene de más reciente a más antiguo, así que los meses salen
   // en orden sin volver a ordenar nada.
   for (const p of hechos(ps)) {
-    const mes = mesDe(p.hecho ?? '')
+    const mes = mesDe(p.finalizado ?? '')
     const ultimo = grupos[grupos.length - 1]
     if (ultimo && ultimo.mes === mes) ultimo.pendientes.push(p)
     else grupos.push({ mes, pendientes: [p] })
@@ -46,4 +46,4 @@ export const porMeses = (ps: Pendiente[]): GrupoMes[] => {
 
 /** Cuántos se resolvieron en ese mes. Es el pie de la pantalla de Hechos. */
 export const resueltosEn = (ps: Pendiente[], mes: string): number =>
-  ps.filter((p) => p.hecho && mesDe(p.hecho) === mes).length
+  ps.filter((p) => p.finalizado && mesDe(p.finalizado) === mes).length

@@ -5,18 +5,16 @@ import { repositorioPendientesMemoria } from './memoria/repositorios'
 import { relojDelSistema } from './reloj'
 import { clienteSupabase, haySupabase } from './supabase/cliente'
 import { autenticacionSupabase } from './supabase/autenticacion'
+import { repositorioPendientesSupabase } from './supabase/pendientes'
 
 /**
  * El único punto donde se elige la implementación de cada contrato.
  *
- * **Fase 2, a medias y a propósito**: la autenticación ya es la de verdad,
- * los pendientes siguen en memoria. Es el mismo camino que recorrió la compra
- * —los puertos entraron de uno en uno, no todos a la vez—, y aquí el orden lo
- * marca lo que existe: la cuenta ya está creada en Supabase y es la misma de
- * la compra, mientras que la tabla `pendientes` todavía no tiene ni migración.
+ * **Fase 2, terminada**: con `.env`, la autenticación y los pendientes son los
+ * de Supabase. El modo mixto de la sesión anterior —cuenta real, datos en
+ * memoria— duró lo que tardó en existir la tabla.
  *
- * Que el modo mixto se vea en el tipo es la ventaja de tener un solo sitio
- * donde se decide: quien lea esto sabe exactamente qué es real y qué no.
+ * Sin `.env` no cambia nada de lo de antes: todo simulado y con semilla.
  */
 
 const enMemoria = (almacen: Almacen): Dependencias => ({
@@ -41,12 +39,10 @@ export const dependenciasEnMemoria = (): Dependencias => enMemoria(nuevoAlmacen(
  */
 export const dependenciasPorDefecto = (): Dependencias => {
   if (!haySupabase) return dependenciasEnMemoria()
+  const sb = clienteSupabase()
   return {
-    // Real. La cuenta es la de la suite entera.
-    auth: autenticacionSupabase(clienteSupabase()),
-    // Todavía en memoria: la tabla `pendientes` es el paso siguiente. Al
-    // entrar, esta línea es lo único que cambia.
-    pendientes: repositorioPendientesMemoria(nuevoAlmacen()),
+    auth: autenticacionSupabase(sb),
+    pendientes: repositorioPendientesSupabase(sb),
     reloj: relojDelSistema(),
   }
 }

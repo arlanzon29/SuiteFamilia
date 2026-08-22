@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useApp } from '../estado/AppProvider'
-import { listaPorHacer } from '../estado/consultas'
+import { listaMasAdelante, listaPorHacer } from '../estado/consultas'
 import { Aviso } from '../componentes/Aviso'
 import { FilaPorHacer } from '../componentes/FilaPendiente'
-import { IconoHoja, IconoMas } from '../iconos'
+import { IconoHoja, IconoLista, IconoMas } from '../iconos'
+import { plural } from '../formato'
 
 /**
  * La lista de lo que queda por hacer, que es la pantalla principal.
@@ -19,7 +21,9 @@ import { IconoHoja, IconoMas } from '../iconos'
 export const Pendientes = () => {
   const { casos, datos, cargando, error, nav, setDlg } = useApp()
   const hoy = casos.hoy()
-  const filas = listaPorHacer(datos)
+  const filas = listaPorHacer(datos, hoy)
+  const masAdelante = listaMasAdelante(datos, hoy)
+  const [abierto, setAbierto] = useState(false)
 
   if (filas.length === 0 && !cargando) {
     return (
@@ -86,6 +90,52 @@ export const Pendientes = () => {
         <IconoMas size={18} />
         Pendiente nuevo
       </button>
+
+      {/*
+        Lo apuntado para más adelante, en voz baja y plegado.
+
+        Existe porque si no, no habría forma de llegar a ello: un pendiente
+        apuntado en marzo para noviembre no saldría en ninguna pantalla hasta
+        noviembre, y una fecha mal escrita no se podría corregir. Va cerrado y
+        con la cuenta a la vista, que es lo justo para saber que están ahí sin
+        que estorben a lo de esta semana, que es de lo que va la lista.
+      */}
+      {masAdelante.length > 0 && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/*
+            Un botón y no un `<details>`: el triángulo de `summary` solo se
+            quita con CSS —y en WebKit con un pseudoelemento—, y `tokens.css`
+            está copiado byte a byte de la compra. Antes que ensuciar la hoja
+            compartida por un icono, se abre a mano.
+          */}
+          <button
+            className="cifra"
+            onClick={() => setAbierto(!abierto)}
+            aria-expanded={abierto}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 9,
+              fontSize: 12,
+              color: 'var(--color-neutral-600)',
+              padding: '10px 2px',
+              minHeight: 44,
+            }}
+          >
+            <IconoLista size={16} />
+            {plural(masAdelante.length, 'apuntado', 'apuntados')} para más adelante
+          </button>
+          {abierto &&
+            masAdelante.map((p) => (
+              <FilaPorHacer
+                key={p.id}
+                p={p}
+                hoy={hoy}
+                abrir={() => nav.ir({ n: 'ficha', id: p.id })}
+              />
+            ))}
+        </div>
+      )}
     </div>
   )
 }

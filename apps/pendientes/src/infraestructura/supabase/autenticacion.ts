@@ -31,8 +31,8 @@ export const autenticacionSupabase = (sb: SupabaseClient): ServicioAutenticacion
     // cuando el token sigue siendo válido.
     const { data, error } = await sb.auth.getSession()
     if (error) throw new Error(mensaje(error))
-    const email = data.session?.user.email
-    return email ? { email } : null
+    const u = data.session?.user
+    return u?.email ? { id: u.id, email: u.email } : null
   },
 
   async entrar(email: string, contrasena: string): Promise<Sesion> {
@@ -41,9 +41,9 @@ export const autenticacionSupabase = (sb: SupabaseClient): ServicioAutenticacion
       password: contrasena,
     })
     if (error) throw new Error(mensaje(error))
-    const correo = data.user?.email
-    if (!correo) throw new Error('La cuenta no tiene correo asociado.')
-    return { email: correo }
+    const u = data.user
+    if (!u?.email) throw new Error('La cuenta no tiene correo asociado.')
+    return { id: u.id, email: u.email }
   },
 
   async salir(): Promise<void> {

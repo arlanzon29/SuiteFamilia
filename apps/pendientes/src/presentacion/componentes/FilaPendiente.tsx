@@ -1,5 +1,5 @@
 import type { Pendiente } from '../../dominio/modelo'
-import { cuando, primeraLinea } from '../formato'
+import { cuando, cuandoToca, primeraLinea } from '../formato'
 import { IconoHecho } from '../iconos'
 
 /**
@@ -56,12 +56,18 @@ export const FilaPorHacer = ({
   hoy: string
   abrir: () => void
 }) => {
-  const nota = primeraLinea(p.comentario)
+  const nota = primeraLinea(p.descripcion)
+  // Lo que tiene día se dice por su día; lo que no, por cuándo se anotó. Es lo
+  // que de verdad ubica cada uno: de una cita importa cuándo es, y de algo sin
+  // fecha, cuánto lleva esperando.
+  const cabeza = p.fechaPrevista
+    ? `Toca ${cuandoToca(p.fechaPrevista, hoy)}`
+    : `Anotado ${cuando(p.creado, hoy)}`
   return (
     <button onClick={abrir} style={{ ...CAJA, display: 'flex', flexDirection: 'column', gap: 5 }}>
       <span style={TITULO}>{p.titulo}</span>
       <span className="cifra" style={SECUNDARIA}>
-        Anotado {cuando(p.creado, hoy)}
+        {cabeza}
         {nota && ` · ${nota}`}
       </span>
     </button>
@@ -84,7 +90,7 @@ export const FilaHecha = ({
     <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
       <span style={{ ...TITULO, fontSize: 18 }}>{p.titulo}</span>
       <span className="cifra" style={{ ...SECUNDARIA, WebkitLineClamp: 1 }}>
-        Hecho {p.hecho ? cuando(p.hecho, hoy) : ''} · anotado {cuando(p.creado, hoy)}
+        Hecho {p.finalizado ? cuando(p.finalizado, hoy) : ''} · anotado {cuando(p.creado, hoy)}
       </span>
     </span>
   </button>

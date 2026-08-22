@@ -129,3 +129,41 @@ export const primeraLinea = (comentario: string): string =>
 
 export const plural = (n: number, singular: string, plural_: string): string =>
   `${n} ${n === 1 ? singular : plural_}`
+
+/**
+ * Quién hizo algo, dicho como se dice en casa: «tú» o «la otra persona».
+ *
+ * No sale un nombre porque no se puede: lo que guarda la tabla es el
+ * identificador de la cuenta, y el correo vive en `auth.users`, que PostgREST
+ * no expone. Tampoco hace falta —son dos—, y para más de dos haría falta una
+ * tabla de perfiles.
+ *
+ * Nulo es una cuenta que ya no existe. Se dice así, sin inventar.
+ */
+export const quien = (persona: string | null, yo: string | undefined): string => {
+  if (!persona) return 'una cuenta que ya no está'
+  return persona === yo ? 'tú' : 'la otra persona'
+}
+
+/**
+ * Cuándo toca hacer algo, en días: «hoy», «mañana», «en 5 días», «hace 2 días»
+ * si ya se pasó.
+ *
+ * Lo vencido se dice en su propia voz —«se pasó hace 2 días»— porque es lo
+ * único de esta pantalla que pide una reacción.
+ */
+export const cuandoToca = (dia: string, hoy: string): string => {
+  const dias = Math.round((diaDeHoy(dia) - diaDeHoy(hoy)) / 86400000)
+  if (dias === 0) return 'es hoy'
+  if (dias === 1) return 'es mañana'
+  if (dias === -1) return 'era ayer'
+  if (dias < 0) return `se pasó hace ${-dias} días`
+  return `en ${dias} días`
+}
+
+/** '2026-09-15' → '15/09/2026'. Para la fecha prevista, que es un día. */
+export const diaCorto = (dia: string): string => {
+  const [a, m, d] = dia.split('-').map(Number)
+  if (!a || !m || !d) return ''
+  return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${a}`
+}

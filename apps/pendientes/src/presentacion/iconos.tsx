@@ -69,6 +69,24 @@ export const IconoPendientes = (p: Props) => (
   </Svg>
 )
 
+/**
+ * `list`. Lo apuntado para más adelante, en la lista de Pendientes.
+ *
+ * Es una lista lisa y no la de marcas de la pestaña: aquello es «lo que hay
+ * que hacer», esto es «lo que hay guardado». Y no puede ser el mismo dibujo
+ * que el de la pestaña, que está a dos dedos en la misma pantalla.
+ */
+export const IconoLista = (p: Props) => (
+  <Svg {...p}>
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <path d="M3 6h.01" />
+    <path d="M3 12h.01" />
+    <path d="M3 18h.01" />
+  </Svg>
+)
+
 /** `check`. La pestaña de lo resuelto, y la marca de cada fila de Hechos. */
 export const IconoHecho = (p: Props) => (
   <Svg {...p}>

@@ -6,6 +6,7 @@ import {
   darPorHecho,
   deshacerHecho,
   editarPendiente,
+  obtenerPendiente,
 } from './casos/pendientes'
 import { cerrarSesion, iniciarSesion, sesionActual } from './casos/sesion'
 
@@ -21,6 +22,7 @@ export const construyeCasosDeUso = (d: Dependencias) => ({
   darPorHecho: darPorHecho(d),
   deshacerHecho: deshacerHecho(d),
   borrarPendiente: borrarPendiente(d),
+  obtenerPendiente: obtenerPendiente(d),
 
   sesionActual: sesionActual(d),
   iniciarSesion: iniciarSesion(d),

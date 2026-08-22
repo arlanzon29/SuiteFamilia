@@ -3,6 +3,15 @@ import type { Sesion, ServicioAutenticacion } from '../../dominio/contratos'
 const CLAVE = 'pendientes.sesion'
 
 /**
+ * Quién eres en modo memoria.
+ *
+ * No hay cuentas de verdad, pero la sesión necesita un identificador estable:
+ * es con lo que se compara `creadoPor` para decir «lo apuntaste tú». La
+ * semilla firma la mitad de las filas con este mismo valor.
+ */
+export const ID_LOCAL = 'yo'
+
+/**
  * Autenticación simulada: valida lo mismo que la compra —el correo lleva «@» y
  * la contraseña no está vacía— y recuerda la sesión en el navegador.
  *
@@ -25,7 +34,7 @@ export const autenticacionMemoria = (): ServicioAutenticacion => ({
     if (!email.includes('@') || !contrasena) {
       throw new Error('Correo o contraseña incorrectos.')
     }
-    const sesion: Sesion = { email }
+    const sesion: Sesion = { id: ID_LOCAL, email }
     try {
       localStorage.setItem(CLAVE, JSON.stringify(sesion))
     } catch {

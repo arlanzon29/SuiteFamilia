@@ -108,7 +108,7 @@ const tituloDe = (ruta: Ruta, datos: Instantanea): { kicker: string; titulo: str
       return { kicker: 'SuiteFamilia', titulo: 'Ajustes' }
     case 'ficha':
       return {
-        kicker: pendiente(datos, ruta.id)?.hecho ? 'Hecho' : 'Pendiente',
+        kicker: pendiente(datos, ruta.id)?.finalizado ? 'Hecho' : 'Pendiente',
         titulo: 'Ficha',
       }
   }

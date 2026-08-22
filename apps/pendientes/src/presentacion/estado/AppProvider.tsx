@@ -13,7 +13,7 @@ import { useNavegacion } from './useNavegacion'
 import { useTema } from './useTema'
 import type { Dialogo } from './rutas'
 
-const VACIO: Instantanea = { pendientes: [] }
+const VACIO: Instantanea = { porHacer: [], ultimosHechos: [], resueltosEsteMes: 0 }
 
 /**
  * Único punto de contacto de la interfaz con la aplicación.

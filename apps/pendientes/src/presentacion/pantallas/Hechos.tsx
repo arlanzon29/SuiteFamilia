@@ -1,6 +1,5 @@
 import { useApp } from '../estado/AppProvider'
-import { cuantosResueltosEn, hechosPorMeses } from '../estado/consultas'
-import { mesDe } from '../../dominio/servicios/agrupacion'
+import { hechosPorMeses } from '../estado/consultas'
 import { Aviso } from '../componentes/Aviso'
 import { FilaHecha } from '../componentes/FilaPendiente'
 import { nombreMes, plural } from '../formato'
@@ -22,8 +21,9 @@ export const Hechos = () => {
   const { casos, datos, cargando, error, nav } = useApp()
   const hoy = casos.hoy()
   const grupos = hechosPorMeses(datos)
-  const esteMes = mesDe(new Date().toISOString())
-  const resueltosEsteMes = cuantosResueltosEn(datos, esteMes)
+  // La cuenta del mes llega aparte y no sale de los grupos: lo cargado son
+  // los ultimos resueltos, que pueden ser todos de meses anteriores.
+  const resueltosEsteMes = datos.resueltosEsteMes
 
   if (grupos.length === 0 && !cargando) {
     return (

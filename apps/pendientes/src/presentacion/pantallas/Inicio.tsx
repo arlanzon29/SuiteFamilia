@@ -22,7 +22,7 @@ export const Inicio = () => {
   const { casos, datos, sesion, cargando, error, nav } = useApp()
   const hoy = casos.hoy()
   const nombre = nombreDe(sesion?.email ?? '')
-  const todos = listaPorHacer(datos)
+  const todos = listaPorHacer(datos, hoy)
   const antiguos = todos.slice(0, CUANTOS)
 
   return (

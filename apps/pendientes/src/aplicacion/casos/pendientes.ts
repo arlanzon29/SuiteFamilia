@@ -8,32 +8,63 @@ import type { Dependencias } from '../dependencias'
  * ni de la tabla.
  */
 
+/** Lo que la pantalla manda al crear o editar. La fecha puede no ir. */
+export type Entrada = {
+  titulo: string
+  descripcion: string
+  fechaPrevista: string | null
+}
+
+/**
+ * Recorta y decide si hay algo que guardar.
+ *
+ * Devuelve nulo cuando el título se queda en blanco, que es lo que hace que
+ * crear y editar compartan la misma regla en vez de tener cada uno la suya.
+ */
+const limpia = (e: Entrada): Entrada | null => {
+  const titulo = e.titulo.trim()
+  // Sin título no hay nada que apuntar. La descripción sí puede ir vacía: hay
+  // cosas que se explican solas («pagar el recibo de la comunidad»).
+  if (!titulo) return null
+  return {
+    titulo,
+    descripcion: e.descripcion.trim(),
+    // La cadena vacía de un campo de fecha sin rellenar es «alguna vez», que
+    // en el modelo es nulo. Normalizarlo aquí evita que la distinción entre
+    // «''» y «null» llegue a la tabla.
+    fechaPrevista: e.fechaPrevista || null,
+  }
+}
+
 export const crearPendiente =
   (d: Dependencias) =>
-  async (titulo: string, comentario: string): Promise<Pendiente | null> => {
-    const t = titulo.trim()
-    // Sin título no hay nada que apuntar. El comentario sí puede ir vacío: hay
-    // cosas que se explican solas («pagar el recibo de la comunidad»).
-    if (!t) return null
-    return d.pendientes.crear({ titulo: t, comentario: comentario.trim() })
+  async (entrada: Entrada): Promise<Pendiente | null> => {
+    const datos = limpia(entrada)
+    if (!datos) return null
+    return d.pendientes.crear(datos)
   }
 
 export const editarPendiente =
   (d: Dependencias) =>
-  async (id: string, titulo: string, comentario: string): Promise<Pendiente | null> => {
-    const t = titulo.trim()
-    if (!t) return null
-    return d.pendientes.editar(id, { titulo: t, comentario: comentario.trim() })
+  async (id: string, entrada: Entrada): Promise<Pendiente | null> => {
+    const datos = limpia(entrada)
+    if (!datos) return null
+    return d.pendientes.editar(id, datos)
   }
 
-/** Sella la fecha de realización. Quien la pone es el almacén, no la pantalla. */
+/**
+ * Sella la fecha de realización y quién lo cierra. Las dos las pone el
+ * almacén, no la pantalla: la fecha porque el reloj de un móvil puede estar
+ * torcido, y la persona porque sale del token de la sesión.
+ */
 export const darPorHecho =
   (d: Dependencias) =>
   async (id: string): Promise<void> =>
     d.pendientes.marcarHecho(id, true)
 
 /**
- * Vuelve a dejarlo por hacer: la fecha de realización se pone a nulo.
+ * Vuelve a dejarlo por hacer: la fecha de realización y quién lo cerró se
+ * ponen a nulo, las dos a la vez.
  *
  * Existe porque dar algo por hecho es un gesto de un toque y equivocarse es
  * fácil. En datos no cuesta nada, y es lo que ya hace la compra al reabrir una
@@ -55,3 +86,9 @@ export const borrarPendiente =
   (d: Dependencias) =>
   async (id: string): Promise<void> =>
     d.pendientes.borrar(id)
+
+/** Uno solo, para la ficha. */
+export const obtenerPendiente =
+  (d: Dependencias) =>
+  async (id: string): Promise<Pendiente | null> =>
+    d.pendientes.obtener(id)

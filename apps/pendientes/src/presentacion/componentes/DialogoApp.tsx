@@ -28,8 +28,16 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
   const editado = dlg.tipo !== 'nuevo' ? pendiente(datos, dlg.id) : undefined
 
   const [titulo, setTitulo] = useState(dlg.tipo === 'editar' ? (editado?.titulo ?? '') : '')
-  const [comentario, setComentario] = useState(
-    dlg.tipo === 'editar' ? (editado?.comentario ?? '') : '',
+  const [descripcion, setDescripcion] = useState(
+    dlg.tipo === 'editar' ? (editado?.descripcion ?? '') : '',
+  )
+  /**
+   * La fecha prevista, `YYYY-MM-DD`, que es justo lo que da y espera un
+   * `<input type="date">`. Vacía es «alguna vez», y es lo normal: la mayoría
+   * de lo que se apunta en una casa no tiene día.
+   */
+  const [fechaPrevista, setFechaPrevista] = useState(
+    dlg.tipo === 'editar' ? (editado?.fechaPrevista ?? '') : '',
   )
   const [error, setError] = useState<string | null>(null)
 
@@ -54,7 +62,7 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
     return (
       <Caja
         titulo={`¿Borrar «${editado?.titulo ?? 'el pendiente'}»?`}
-        texto="Desaparece del todo, con su comentario. No es lo mismo que darlo por hecho: esto es para lo que se apuntó por error."
+        texto="Desaparece del todo, con su descripción. No es lo mismo que darlo por hecho: esto es para lo que se apuntó por error."
         cerrar={cerrar}
       >
         {error && <Aviso>{error}</Aviso>}
@@ -87,8 +95,9 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
 
   const guardar = async () => {
     if (!titulo.trim()) return
-    if (esNuevo) await acciones.crearPendiente(titulo, comentario)
-    else await acciones.editarPendiente(dlg.id, titulo, comentario)
+    const entrada = { titulo, descripcion, fechaPrevista }
+    if (esNuevo) await acciones.crearPendiente(entrada)
+    else await acciones.editarPendiente(dlg.id, entrada)
     setDlg(null)
   }
 
@@ -111,9 +120,9 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
         />
       </div>
       <div className="field">
-        <label htmlFor="comentario">Comentario</label>
+        <label htmlFor="descripcion">Descripción</label>
         <textarea
-          id="comentario"
+          id="descripcion"
           className="input"
           style={{
             fontSize: 16,
@@ -121,13 +130,38 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
             padding: '8px 10px',
             minHeight: esNuevo ? 110 : 150,
           }}
-          value={comentario}
+          value={descripcion}
           onChange={(e) => {
-            setComentario(e.target.value)
+            setDescripcion(e.target.value)
             setError(null)
           }}
           placeholder="Todo lo que haga falta recordar"
         />
+      </div>
+      {/*
+        La fecha va la última y sin obligar a nada: lo normal es apuntar algo
+        sin día. El pie explica lo que hace, porque una fecha que además
+        esconde el pendiente hasta que se acerca no es lo que nadie espera de
+        un campo llamado «fecha».
+      */}
+      <div className="field">
+        <label htmlFor="fecha">Fecha en que toca</label>
+        <input
+          id="fecha"
+          type="date"
+          className="input"
+          style={{ minHeight: 48, fontSize: 16 }}
+          value={fechaPrevista}
+          onChange={(e) => {
+            setFechaPrevista(e.target.value)
+            setError(null)
+          }}
+        />
+        <span style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>
+          {fechaPrevista
+            ? 'Aparecerá en la lista una semana antes.'
+            : 'Sin fecha se ve en la lista desde ya.'}
+        </span>
       </div>
       {error && <Aviso>{error}</Aviso>}
       <div className="dialog-actions">
