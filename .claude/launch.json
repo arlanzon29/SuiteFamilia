@@ -19,6 +19,25 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "apps/compra", "--", "--mode", "memoria", "--port", "5199"],
       "port": 5199
+    },
+    {
+      "name": "pendientes",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/pendientes", "--", "--port", "5174"],
+      "port": 5174
+    },
+    {
+      "name": "pendientes-compilada",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--prefix", "apps/pendientes", "--", "--port", "4174"],
+      "port": 4174,
+      "url": "http://localhost:4174"
+    },
+    {
+      "name": "pendientes-memoria",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/pendientes", "--", "--mode", "memoria", "--port", "5200"],
+      "port": 5200
     }
   ]
 }

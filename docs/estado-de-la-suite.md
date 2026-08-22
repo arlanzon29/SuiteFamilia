@@ -2,17 +2,26 @@
 
 Última actualización: **22 de agosto de 2026**.
 
-Lo último: **se crea SuiteFamilia** y se trae dentro la lista de la compra, que
+Lo último: **Pendientes ya está escrita**, con sus nueve pantallas contra
+repositorios en memoria y las cuatro capas copiadas de la compra. No toca
+Supabase todavía —esa es la fase siguiente— y por eso **no entra aún en el flujo
+de despliegue**: `/SuiteFamilia/pendientes/` sigue sin existir, porque publicar
+algo que solo funciona contra memoria enseñaría la semilla y perdería lo escrito
+al recargar. Queda además un repaso pendiente de las nueve pantallas en el
+navegador, en claro y en oscuro. Todo eso, en
+[`../apps/pendientes/docs/estado-del-proyecto.md`](../apps/pendientes/docs/estado-del-proyecto.md).
+
+Antes: **se crea SuiteFamilia** y se trae dentro la lista de la compra, que
 queda como `apps/compra`. La aplicación no se ha tocado por dentro: mismo
 código, mismas capas, misma base. Lo que cambia es dónde vive y cómo se compila.
 Ya está **publicada** en <https://arlanzon29.github.io/SuiteFamilia/compra/>.
 
 La segunda aplicación se llama **Pendientes**, no `tareas` como decía antes
-este documento. Ya tiene boceto, y ya están tomadas las cuatro decisiones de
-producto que dejaba abiertas —se pueden borrar, un «hecho» se puede deshacer,
-se quedan las cuatro pestañas y fuera las filas de la suite en Ajustes—: todo
-eso, con lo que hay que corregir al portarlo, está en
-[`pendientes-boceto.md`](pendientes-boceto.md).
+este documento. Su boceto, las cuatro decisiones de producto que dejaba
+abiertas —se pueden borrar, un «hecho» se puede deshacer, se quedan las cuatro
+pestañas y fuera las filas de la suite en Ajustes— y lo que había que corregir
+al portarlo están en [`pendientes-boceto.md`](pendientes-boceto.md). Las cuatro
+decisiones y las correcciones ya están en el código.
 
 Y queda escrita **la regla que ordena lo que viene**: `apps/compra` es el
 modelo y las demás aplicaciones copian de ella —arquitectura limpia con sus
@@ -31,7 +40,7 @@ se cuenta en su propio documento —para la compra,
 | Aplicación | Estado | Dirección |
 |---|---|---|
 | `apps/compra` | Terminada, publicada | <https://arlanzon29.github.io/SuiteFamilia/compra/> |
-| `apps/pendientes` | Sin empezar — hay boceto, es lo siguiente | `/SuiteFamilia/pendientes/` |
+| `apps/pendientes` | Escrita contra memoria — falta Supabase, y falta repasarla en el navegador | `/SuiteFamilia/pendientes/` (todavía sin publicar) |
 
 **Publicada** el 22 de agosto de 2026 en
 <https://github.com/arlanzon29/SuiteFamilia>, repositorio **público** —con el
@@ -107,6 +116,14 @@ verdad con las que aún no existen. Una abstracción adivinada cuesta más de
 deshacer que la duplicación que evita. Cuando Pendientes esté escrita se verá qué
 se repitió de verdad, y eso —y solo eso— es lo que se extrae.
 
+**Ya hay con qué mirarlo.** Escrita Pendientes, lo que se repitió literalmente
+es esto, y conviene apuntarlo antes de que se olvide: `tokens.css` (idéntico
+byte a byte), el marco de la aplicación de `App.tsx`, `Cabecera`,
+`BarraPestanas`, `Aviso` con su `textoError`, `useTema`, `useNavegacion`, el
+`Reloj` y la autenticación simulada. No se extrae todavía —falta la fase de
+Supabase, y es ahí donde se verá si el contenedor y el cliente también son
+comunes—, pero esa es la lista de candidatos.
+
 ## 5 bis. Sin espacios de trabajo: `D:` es exFAT
 
 El monorepo **no usa los espacios de trabajo de npm**, que es lo que uno
@@ -134,7 +151,10 @@ abierta.
 
 - **La portada.** `/SuiteFamilia/` no tiene nada: cada aplicación se abre por su
   dirección. Hace falta decidir si se pone una página que las liste o se deja
-  así, porque hoy esa dirección daría un 404.
+  así, porque hoy esa dirección daría un 404. **Aprieta más desde Pendientes**:
+  al quitar de su Ajustes las filas de «Aplicaciones de la suite» —parecían
+  navegación y no llevaban a ningún sitio— ya no queda ninguna forma de saltar
+  de una aplicación a otra desde dentro.
 - **Cuándo se archiva el original**, y avisar a la familia de que reinstale la
   aplicación desde la dirección nueva. La instalada apunta a `/ListaCompra/` y
   no se entera del cambio sola.
