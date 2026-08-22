@@ -71,6 +71,24 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+      # Pendientes entra en el despliegue con los datos todavía en memoria, y
+      # eso es una decisión, no un descuido: publicada sirve para verla en un
+      # móvil de verdad e instalarla, no para usarla. Cada teléfono verá la
+      # semilla, lo que se apunte se perderá al recargar y no llegará al de
+      # nadie más. La cuenta sí es real. Deja de ser un escaparate cuando entre
+      # la tabla `pendientes`; está en su docs/estado-del-proyecto.md §6.
+      #
+      # Los secretos son los mismos que arriba: una sola base para toda la
+      # suite. Aquí hacen falta para la autenticación, que ya es de Supabase.
+      - run: npm ci
+        working-directory: apps/pendientes
+
+      - run: npm run build
+        working-directory: apps/pendientes
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist

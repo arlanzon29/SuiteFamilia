@@ -40,7 +40,7 @@ se cuenta en su propio documento —para la compra,
 | Aplicación | Estado | Dirección |
 |---|---|---|
 | `apps/compra` | Terminada, publicada | <https://arlanzon29.github.io/SuiteFamilia/compra/> |
-| `apps/pendientes` | Escrita contra memoria — falta Supabase, y falta repasarla en el navegador | `/SuiteFamilia/pendientes/` (todavía sin publicar) |
+| `apps/pendientes` | Publicada **en modo escaparate**: la cuenta ya es de Supabase, los datos siguen en memoria | <https://arlanzon29.github.io/SuiteFamilia/pendientes/> |
 
 **Publicada** el 22 de agosto de 2026 en
 <https://github.com/arlanzon29/SuiteFamilia>, repositorio **público** —con el

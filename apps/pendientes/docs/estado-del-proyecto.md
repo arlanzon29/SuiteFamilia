@@ -33,14 +33,20 @@ entera va en [`../../../docs/estado-de-la-suite.md`](../../../docs/estado-de-la-
 | Autenticación contra Supabase Auth | escrita y probada en el navegador | ✅ |
 | Recorrido de las nueve pantallas, claro y oscuro | **a medias**: pasos 1, 2 y el desconectar del 12 | 🟨 |
 | Migración y repositorio de pendientes en Supabase | **sin empezar**, es lo siguiente | ⬜ |
-| Entrada en el flujo de despliegue | **sin hacer**, y a propósito | ⬜ |
+| Entrada en el flujo de despliegue | hecha, **en modo escaparate** | 🟨 |
 
-No está en el despliegue porque no tiene sentido publicar algo que solo
-funciona contra memoria: lo publicado enseñaría la semilla y perdería lo
-escrito al recargar. Por eso el `build` del `package.json` de la raíz **sigue
-compilando solo la compra**, a diferencia de `instalar` y `typecheck`, que ya
-recorren las dos. Añadir Pendientes al `build` es lo mismo que publicarla: el
-flujo de GitHub Actions sube la carpeta `dist` entera.
+**Publicada, y con una advertencia que hay que leer entera.** Entra en el
+despliegue antes de tener la tabla, que es al revés de lo que decía este
+documento, y la razón es concreta: era la única forma de abrirla en un móvil
+de verdad e instalarla. El `build` de la raíz ya compila las dos, y el flujo de
+GitHub Actions tiene su bloque; la carpeta `dist` sube entera, con una
+subcarpeta por aplicación.
+
+Lo que eso significa mientras los datos sigan en memoria: **cada teléfono verá
+la semilla**, lo que se apunte se perderá al recargar y no llegará al de nadie
+más. La cuenta sí es real. Es decir, sirve para mirar el diseño y para
+instalarla, **no para usarla**, y conviene decírselo a quien la abra. Deja de
+ser un escaparate en cuanto entre la tabla `pendientes` del §6.
 
 ## 2. Cómo arrancarla
 
