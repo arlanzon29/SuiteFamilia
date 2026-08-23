@@ -50,7 +50,7 @@ export const Login = () => {
         }}
       >
         <IconoInicio size={40} color="var(--color-accent)" />
-        <div className="kicker">SuiteFamilia</div>
+        <div className="kicker">Suite Home</div>
         <h1 style={{ fontSize: 34, margin: 0, fontWeight: 600, lineHeight: 1.15 }}>
           Una cuenta para toda la casa
         </h1>

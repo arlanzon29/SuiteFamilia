@@ -153,7 +153,7 @@ export const Ajustes = () => {
           color: 'var(--color-neutral-500)',
         }}
       >
-        SuiteFamilia
+        Suite Home
       </div>
     </div>
   )

@@ -69,8 +69,8 @@ const Pantalla = ({ ruta }: { ruta: Ruta }) => {
 const tituloDe = (ruta: Ruta): { kicker: string; titulo: string } => {
   switch (ruta.n) {
     case 'inicio':
-      return { kicker: 'SuiteFamilia', titulo: 'Suite Familia' }
+      return { kicker: 'Suite Home', titulo: 'Suite Home' }
     case 'ajustes':
-      return { kicker: 'SuiteFamilia', titulo: 'Ajustes' }
+      return { kicker: 'Suite Home', titulo: 'Ajustes' }
   }
 }
