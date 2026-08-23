@@ -1,13 +1,17 @@
 import { useApp } from '../estado/AppProvider'
 import { Aviso } from '../componentes/Aviso'
 import { nombreDe, plural, saludo } from '../formato'
-import { IconoAvanzar, IconoCompra, IconoPendientes } from '../iconos'
+import { IconoAvanzar, IconoCompra, IconoPendientes, IconoSaber } from '../iconos'
 
 /**
  * Pantalla de arranque de toda la suite: el saludo y una tarjeta por
- * aplicación, cada una con sus cifras y un enlace a la app real. La portada
- * no tiene pantallas de detalle propias — de aquí solo se sale hacia compra o
- * hacia pendientes.
+ * aplicación, cada una con un enlace a la app real. La portada no tiene
+ * pantallas de detalle propias — de aquí solo se sale hacia compra, hacia
+ * pendientes o hacia saber.
+ *
+ * La tarjeta de Saber no lleva cifras, a diferencia de las otras dos: es
+ * solo el enlace. Añadirle un resumen leído de Supabase —como tienen Compra
+ * y Pendientes— es trabajo aparte si algún día hace falta.
  */
 export const Inicio = () => {
   const {
@@ -76,6 +80,16 @@ export const Inicio = () => {
               ]
             : []
         }
+      />
+
+      <Tarjeta
+        href="/SuiteFamilia/saber/"
+        Icono={IconoSaber}
+        titulo="Saber"
+        cargando={false}
+        error={null}
+        cantidadCifras={0}
+        cifras={[]}
       />
 
       <Version />

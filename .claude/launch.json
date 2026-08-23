@@ -4,59 +4,176 @@
     {
       "name": "compra",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "apps/compra"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/compra"
+      ],
       "port": 5173
     },
     {
       "name": "compra-compilada",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--prefix", "apps/compra"],
+      "runtimeArgs": [
+        "run",
+        "preview",
+        "--prefix",
+        "apps/compra"
+      ],
       "port": 4173,
       "url": "http://localhost:4173"
     },
     {
       "name": "compra-memoria",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "apps/compra", "--", "--mode", "memoria", "--port", "5199"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/compra",
+        "--",
+        "--mode",
+        "memoria",
+        "--port",
+        "5199"
+      ],
       "port": 5199
     },
     {
       "name": "pendientes",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "apps/pendientes", "--", "--port", "5174"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/pendientes",
+        "--",
+        "--port",
+        "5174"
+      ],
       "port": 5174
     },
     {
       "name": "pendientes-compilada",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--prefix", "apps/pendientes", "--", "--port", "4174"],
+      "runtimeArgs": [
+        "run",
+        "preview",
+        "--prefix",
+        "apps/pendientes",
+        "--",
+        "--port",
+        "4174"
+      ],
       "port": 4174,
       "url": "http://localhost:4174"
     },
     {
       "name": "pendientes-memoria",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "apps/pendientes", "--", "--mode", "memoria", "--port", "5200"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/pendientes",
+        "--",
+        "--mode",
+        "memoria",
+        "--port",
+        "5200"
+      ],
       "port": 5200
     },
     {
       "name": "suite",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "apps/suite", "--", "--port", "5175"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/suite",
+        "--",
+        "--port",
+        "5175"
+      ],
       "port": 5175
     },
     {
       "name": "suite-compilada",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--prefix", "apps/suite", "--", "--port", "4175"],
+      "runtimeArgs": [
+        "run",
+        "preview",
+        "--prefix",
+        "apps/suite",
+        "--",
+        "--port",
+        "4175"
+      ],
       "port": 4175,
       "url": "http://localhost:4175"
     },
     {
       "name": "suite-memoria",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "apps/suite", "--", "--mode", "memoria", "--port", "5201"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/suite",
+        "--",
+        "--mode",
+        "memoria",
+        "--port",
+        "5201"
+      ],
       "port": 5201
+    },
+    {
+      "name": "saber",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/saber",
+        "--",
+        "--port",
+        "5176"
+      ],
+      "port": 5176
+    },
+    {
+      "name": "saber-compilada",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "preview",
+        "--prefix",
+        "apps/saber",
+        "--",
+        "--port",
+        "4176"
+      ],
+      "port": 4176,
+      "url": "http://localhost:4176"
+    },
+    {
+      "name": "saber-memoria",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "apps/saber",
+        "--",
+        "--mode",
+        "memoria",
+        "--port",
+        "5202"
+      ],
+      "port": 5202
     }
   ]
 }
