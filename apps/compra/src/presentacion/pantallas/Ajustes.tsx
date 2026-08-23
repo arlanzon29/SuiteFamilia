@@ -3,7 +3,7 @@ import { useApp } from '../estado/AppProvider'
 import type { Simulacion } from '../estado/rutas'
 import { Miniatura } from '../componentes/Miniatura'
 import { Aviso, textoError } from '../componentes/Aviso'
-import { IconoBorrar, IconoMas } from '../iconos'
+import { IconoAvanzar, IconoBorrar, IconoMas } from '../iconos'
 
 export const Ajustes = () => {
   const { casos, datos, acciones, sesion, salir, actualizarNombre, tema, imagenes, sim, setSim, setDlg } =
@@ -219,6 +219,26 @@ export const Ajustes = () => {
         >
           Cerrar sesión
         </button>
+      </section>
+
+      {/* Vuelta a la portada de la suite. Antes no había forma de saltar de
+          una app a otra desde dentro; ahora la hay en las dos direcciones. */}
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <a
+          href="/SuiteFamilia/suite/"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            minHeight: 48,
+            fontSize: 16,
+            color: 'inherit',
+            textDecoration: 'none',
+          }}
+        >
+          <span style={{ flex: 1 }}>Suite Familia</span>
+          <IconoAvanzar size={18} color="var(--color-neutral-600)" />
+        </a>
       </section>
     </div>
   )

@@ -1,8 +1,22 @@
 # Estado de la suite
 
-Última actualización: **22 de agosto de 2026**.
+Última actualización: **23 de agosto de 2026**.
 
-Lo último: **Pendientes ya está escrita**, con sus nueve pantallas contra
+Lo último: **existe la portada**, `apps/suite`, publicada en
+`/SuiteFamilia/suite/`. Es la respuesta al hueco que dejaba anotado el
+apartado 6 de este mismo documento: login compartido y, en el Inicio, una
+tarjeta por aplicación —Compra y Pendientes— con las mismas cifras que cada
+una enseña en la suya y un enlace a la app real. Sin migración nueva: la
+tarjeta de Compra llama a la misma `resumen_inicio()` que ya usa
+`apps/compra`, y la de Pendientes cuenta sobre la tabla `pendientes` igual que
+ya hace `Inicio.tsx` de esa app. Compra y Pendientes llevan ahora, al final de
+su Ajustes, una fila «Suite Familia» que enlaza de vuelta — el salto entre
+apps ya funciona en las dos direcciones. Escrita contra memoria y contra
+Supabase a la vez —no hace falta el camino en dos fases de las otras dos apps,
+porque no hay tabla propia que migrar—; queda pendiente el repaso en el
+navegador, en claro y en oscuro, con credenciales reales.
+
+Antes: **Pendientes ya está escrita**, con sus nueve pantallas contra
 repositorios en memoria y las cuatro capas copiadas de la compra. No toca
 Supabase todavía —esa es la fase siguiente— y por eso **no entra aún en el flujo
 de despliegue**: `/SuiteFamilia/pendientes/` sigue sin existir, porque publicar
@@ -41,6 +55,7 @@ se cuenta en su propio documento —para la compra,
 |---|---|---|
 | `apps/compra` | Terminada, publicada | <https://arlanzon29.github.io/SuiteFamilia/compra/> |
 | `apps/pendientes` | Publicada **en modo escaparate**: la cuenta ya es de Supabase, los datos siguen en memoria | <https://arlanzon29.github.io/SuiteFamilia/pendientes/> |
+| `apps/suite` | Escrita, enganchada al despliegue; falta el repaso en el navegador contra credenciales reales | <https://arlanzon29.github.io/SuiteFamilia/suite/> |
 
 **Publicada** el 22 de agosto de 2026 en
 <https://github.com/arlanzon29/SuiteFamilia>, repositorio **público** —con el
@@ -149,15 +164,14 @@ abierta.
 
 ## 6. Lo que queda por decidir
 
-- **La portada.** `/SuiteFamilia/` no tiene nada: cada aplicación se abre por su
-  dirección. Hace falta decidir si se pone una página que las liste o se deja
-  así, porque hoy esa dirección daría un 404. **Aprieta más desde Pendientes**:
-  al quitar de su Ajustes las filas de «Aplicaciones de la suite» —parecían
-  navegación y no llevaban a ningún sitio— ya no queda ninguna forma de saltar
-  de una aplicación a otra desde dentro.
 - **Cuándo se archiva el original**, y avisar a la familia de que reinstale la
   aplicación desde la dirección nueva. La instalada apunta a `/ListaCompra/` y
   no se entera del cambio sola.
+
+Ya no está pendiente **la portada**: `/SuiteFamilia/` seguirá dando 404 —esa
+dirección no tiene aplicación propia, y no la va a tener—, pero
+`/SuiteFamilia/suite/` sí existe, con login compartido y el salto a cada
+aplicación desde su tarjeta. Es `apps/suite`, contado arriba.
 
 Ya no está pendiente el nombre del repositorio: es `SuiteFamilia`, y con él la
 dirección `/SuiteFamilia/compra/` que llevan escrita el `vite.config.ts` de la

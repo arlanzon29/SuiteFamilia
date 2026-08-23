@@ -51,8 +51,8 @@ jobs:
           cache: npm
           # Sin espacios de trabajo no hay un `package-lock.json` en la raíz:
           # cada aplicación tiene el suyo (ver docs/estado-de-la-suite.md §5
-          # bis, que cuenta por qué). Hay que nombrarlos todos para que el
-          # caché sepa cuándo cambian.
+          # bis, que cuenta por qué). El glob recoge las tres (`apps/*/`), así
+          # que no hace falta tocar esta línea cuando se añada la siguiente.
           cache-dependency-path: apps/*/package-lock.json
 
       # Un bloque por aplicación: instala y compila en su carpeta. `npm ci` en
@@ -79,6 +79,17 @@ jobs:
 
       - run: npm run build
         working-directory: apps/pendientes
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      # La portada: mismos secretos, mismo motivo — entra con la misma cuenta
+      # y lee `resumen_inicio()` y la tabla `pendientes`, ambas del mismo proyecto.
+      - run: npm ci
+        working-directory: apps/suite
+
+      - run: npm run build
+        working-directory: apps/suite
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}

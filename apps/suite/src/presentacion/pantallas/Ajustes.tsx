@@ -1,20 +1,15 @@
 import { useState } from 'react'
 import { useApp } from '../estado/AppProvider'
 import { Aviso, textoError } from '../componentes/Aviso'
-import { IconoAvanzar, IconoDesconectar } from '../iconos'
+import { IconoDesconectar } from '../iconos'
 
 /**
- * Tema, cuenta, desconectar y la vuelta a la portada.
- *
- * El boceto traía unas filas de «Aplicaciones de la suite» —Compra,
- * Pendientes— que parecían navegación y no llevaban a ningún sitio. Se
- * quitaron. Lo que faltaba no era esa navegación de mentira, sino una app
- * propia en `/SuiteFamilia/suite/` que hiciera de portada — eso es
- * `apps/suite`, y la fila de aquí abajo enlaza con ella.
- *
- * Tampoco está la «Demostración de estados» que tiene la compra en su Ajustes:
- * allí sirve para revisar el diseño del detalle de lista, que tiene tres
- * estados de carga que cuesta provocar. Aquí no hay nada equivalente.
+ * Tema, cuenta y desconectar. Calco de `apps/pendientes/.../Ajustes.tsx`,
+ * con una diferencia: al ser la puerta de entrada, la cuenta no se explica
+ * como «la misma que la de la compra» — aquí la cuenta ES la de toda la
+ * suite, y desconectar aquí cierra la sesión para compra y pendientes
+ * también, porque las tres viven del mismo origen y la misma clave de
+ * Supabase Auth.
  */
 export const Ajustes = () => {
   const { sesion, salir, actualizarNombre, tema } = useApp()
@@ -25,7 +20,6 @@ export const Ajustes = () => {
   const [guardandoNombre, setGuardandoNombre] = useState(false)
   const [errorNombre, setErrorNombre] = useState<string | null>(null)
 
-  /** El nombre de pila, para el saludo de Inicio. Se guarda en el metadato de la cuenta. */
   const guardarNombre = async () => {
     setGuardandoNombre(true)
     setErrorNombre(null)
@@ -38,13 +32,6 @@ export const Ajustes = () => {
     }
   }
 
-  /**
-   * Desconectar ya llama a Supabase, y por tanto ya puede fallar de verdad:
-   * sin cobertura, `signOut` no llega a salir. El `void salir()` de antes se
-   * tragaba ese fallo y dejaba el botón mudo, que es lo peor que puede pasar
-   * aquí —quien lo pulsa se cree fuera y sigue dentro—. Ahora el fallo se
-   * enseña y la sesión se queda como estaba.
-   */
   const desconectar = async () => {
     setSaliendo(true)
     setError(null)
@@ -143,7 +130,7 @@ export const Ajustes = () => {
           </span>
         </div>
         <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-600)' }}>
-          Es la misma cuenta de la lista de la compra: toda la suite comparte una sola.
+          Es la cuenta de toda la casa: la misma para la compra y para pendientes.
         </p>
         {error && <Aviso>{error}</Aviso>}
         <button
@@ -157,27 +144,6 @@ export const Ajustes = () => {
         </button>
       </section>
 
-      {/* Vuelta a la portada de la suite. Cierra el hueco que dejaba anotado
-          este mismo fichero: antes no había forma de saltar de una app a otra
-          desde dentro. */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <a
-          href="/SuiteFamilia/suite/"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            minHeight: 48,
-            fontSize: 16,
-            color: 'inherit',
-            textDecoration: 'none',
-          }}
-        >
-          <span style={{ flex: 1 }}>Suite Familia</span>
-          <IconoAvanzar size={18} color="var(--color-neutral-600)" />
-        </a>
-      </section>
-
       <div
         className="cifra"
         style={{
@@ -187,7 +153,7 @@ export const Ajustes = () => {
           color: 'var(--color-neutral-500)',
         }}
       >
-        SuiteFamilia · Pendientes
+        SuiteFamilia
       </div>
     </div>
   )

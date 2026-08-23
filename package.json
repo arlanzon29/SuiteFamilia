@@ -4,12 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "instalar": "cd apps/compra && npm install && cd ../pendientes && npm install",
+    "instalar": "cd apps/compra && npm install && cd ../pendientes && npm install && cd ../suite && npm install",
     "dev": "cd apps/compra && npm run dev",
     "dev:compra": "cd apps/compra && npm run dev",
     "dev:pendientes": "cd apps/pendientes && npm run dev -- --port 5174",
-    "build": "cd apps/compra && npm run build && cd ../pendientes && npm run build",
-    "typecheck": "cd apps/compra && npm run typecheck && cd ../pendientes && npm run typecheck",
+    "dev:suite": "cd apps/suite && npm run dev -- --port 5175",
+    "build": "cd apps/compra && npm run build && cd ../pendientes && npm run build && cd ../suite && npm run build",
+    "typecheck": "cd apps/compra && npm run typecheck && cd ../pendientes && npm run typecheck && cd ../suite && npm run typecheck",
     "copia": "powershell -ExecutionPolicy Bypass -File scripts/copia-seguridad.ps1"
   }
 }

@@ -7,7 +7,9 @@ cuenta por persona**.
 
 | Aplicación | Qué hace | Dirección |
 |---|---|---|
+| `apps/suite` | La portada: login compartido y una tarjeta por app con sus cifras | `/SuiteFamilia/suite/` |
 | `apps/compra` | Lista de la compra compartida y comparativa de precios por unidad de medida | `/SuiteFamilia/compra/` |
+| `apps/pendientes` | Lo que la casa tiene a medias, con lo importante destacado | `/SuiteFamilia/pendientes/` |
 
 ---
 
