@@ -6,11 +6,28 @@ import { Aviso, textoError } from '../componentes/Aviso'
 import { IconoBorrar, IconoMas } from '../iconos'
 
 export const Ajustes = () => {
-  const { casos, datos, acciones, sesion, salir, tema, imagenes, sim, setSim, setDlg } =
+  const { casos, datos, acciones, sesion, salir, actualizarNombre, tema, imagenes, sim, setSim, setDlg } =
     useApp()
   const [nueva, setNueva] = useState('')
   const [error, setError] = useState<string | null>(null)
   const hoy = casos.hoy()
+
+  const [nombre, setNombre] = useState(sesion?.nombre ?? '')
+  const [guardandoNombre, setGuardandoNombre] = useState(false)
+  const [errorNombre, setErrorNombre] = useState<string | null>(null)
+
+  /** El nombre de pila, para el saludo de Inicio. Se guarda en el metadato de la cuenta. */
+  const guardarNombre = async () => {
+    setGuardandoNombre(true)
+    setErrorNombre(null)
+    try {
+      await actualizarNombre(nombre)
+    } catch (e) {
+      setErrorNombre(textoError(e))
+    } finally {
+      setGuardandoNombre(false)
+    }
+  }
 
   // Cualquier cambio en la lista de tiendas —renombrar, borrar, o el alta de
   // la otra persona— deja obsoleto el aviso del alta anterior.
@@ -172,6 +189,26 @@ export const Ajustes = () => {
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div className="kicker-neutral">Cuenta</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 48 }}>
+          <span style={{ flex: 'none', fontSize: 16 }}>Nombre</span>
+          <input
+            className="input"
+            style={{ flex: 1, minHeight: 44, fontSize: 16 }}
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Cómo quieres que te llamemos"
+            maxLength={40}
+          />
+          <button
+            className="btn btn-secondary"
+            style={{ minHeight: 44, flexShrink: 0 }}
+            onClick={() => void guardarNombre()}
+            disabled={guardandoNombre || nombre.trim() === (sesion?.nombre ?? '')}
+          >
+            {guardandoNombre ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
+        {errorNombre && <Aviso>{errorNombre}</Aviso>}
         <div style={{ fontSize: 14, color: 'var(--color-neutral-700)' }}>
           {sesion?.email} · datos compartidos con 1 persona más
         </div>

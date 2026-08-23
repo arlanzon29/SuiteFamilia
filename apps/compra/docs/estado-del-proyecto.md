@@ -1,8 +1,20 @@
 # Estado del proyecto
 
-Última actualización: **21 de agosto de 2026**.
+Última actualización: **23 de agosto de 2026**.
 
-Lo último: **la fecha de cada lista** más **duplicar una lista**
+Lo último: **saludo con nombre en Inicio, y se cambia desde Ajustes** — el
+mismo cambio que en Pendientes, portado aquí. `Sesion` gana `nombre: string |
+null` y `ServicioAutenticacion` gana `actualizarNombre(nombre)`; la
+implementación de Supabase lee y escribe `user_metadata.full_name` con
+`sb.auth.updateUser()`, que cualquier cuenta puede llamar sobre sí misma sin
+la clave `service_role`. `formato.ts` gana `saludo()` y `nombreDe()` —hasta
+ahora Inicio no tenía saludo—, y la pantalla los usa para «Buenos días,
+Marta», con el nombre guardado si existe o derivado del correo si no. El
+campo de edición vive en Ajustes → Cuenta, junto al correo. Detalle completo
+del porqué en
+[`../../pendientes/docs/estado-del-proyecto.md`](../../pendientes/docs/estado-del-proyecto.md).
+
+Antes: **la fecha de cada lista** más **duplicar una lista**
 (§3 quindecies), **el nombre del artículo a 21px** en la lista de la compra
 (§3 sexdecies), y el fallo de los **artículos con acentos**, que no podían
 tener foto (§3 septdecies), y **la foto del catálogo, que ya se amplía al

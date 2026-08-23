@@ -138,12 +138,19 @@ export interface RepositorioResumen {
 
 export type Sesion = {
   email: string
+  /**
+   * El nombre de pila, si se ha guardado. Nulo hasta que alguien lo pone
+   * desde Ajustes; mientras tanto la interfaz cae en derivarlo del correo.
+   */
+  nombre: string | null
 }
 
 export interface ServicioAutenticacion {
   sesionActual(): Promise<Sesion | null>
   entrar(email: string, contrasena: string): Promise<Sesion>
   salir(): Promise<void>
+  /** Cambia el nombre de pila de la cuenta que ha entrado. */
+  actualizarNombre(nombre: string): Promise<Sesion>
 }
 
 /**

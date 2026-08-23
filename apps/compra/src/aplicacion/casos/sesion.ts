@@ -15,3 +15,8 @@ export const cerrarSesion =
   (d: Dependencias) =>
   async (): Promise<void> =>
     d.auth.salir()
+
+export const actualizarNombre =
+  (d: Dependencias) =>
+  async (nombre: string): Promise<Sesion> =>
+    d.auth.actualizarNombre(nombre.trim())

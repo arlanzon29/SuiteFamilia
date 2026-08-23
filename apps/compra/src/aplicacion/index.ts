@@ -25,7 +25,7 @@ import {
 } from './casos/listas'
 import { guardarPrecio } from './casos/precios'
 import { cargarImagenes, guardarImagen, quitarImagen } from './casos/imagenes'
-import { cerrarSesion, iniciarSesion, sesionActual } from './casos/sesion'
+import { actualizarNombre, cerrarSesion, iniciarSesion, sesionActual } from './casos/sesion'
 
 /**
  * Los casos de uso ya enlazados a sus dependencias. Es lo único que la capa de
@@ -63,6 +63,7 @@ export const construyeCasosDeUso = (d: Dependencias) => ({
   sesionActual: sesionActual(d),
   iniciarSesion: iniciarSesion(d),
   cerrarSesion: cerrarSesion(d),
+  actualizarNombre: actualizarNombre(d),
 
   /** El «hoy» que usan las pantallas para marcar los apuntes del día. */
   hoy: () => d.reloj.hoy(),

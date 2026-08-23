@@ -1,6 +1,7 @@
 import type { ListaAbierta } from '../../dominio/modelo'
 import { Aviso } from '../componentes/Aviso'
 import { useApp } from '../estado/AppProvider'
+import { nombreDe, saludo } from '../formato'
 
 /**
  * Pantalla de arranque: retomar la compra en un toque y ver de un vistazo qué
@@ -15,12 +16,14 @@ import { useApp } from '../estado/AppProvider'
  * obligaba a traerse `precios`.
  */
 export const Inicio = () => {
-  const { resumen, cargandoResumen, errorResumen, nav } = useApp()
+  const { resumen, cargandoResumen, errorResumen, nav, sesion } = useApp()
+  const nombre = sesion?.nombre ?? nombreDe(sesion?.email ?? '')
 
   // Primera carga: ni cifras ni hueco, para no enseñar ceros que no son.
   if (!resumen) {
     return (
       <div style={{ padding: '14px 14px 26px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <Saludo nombre={nombre} />
         {errorResumen ? <Aviso>{errorResumen}</Aviso> : cargandoResumen ? <Esqueleto /> : null}
         {/* También aquí: si el resumen no llega, el sello es lo único que dice
             qué compilación está fallando. */}
@@ -51,6 +54,8 @@ export const Inicio = () => {
         gap: 20,
       }}
     >
+      <Saludo nombre={nombre} />
+
       {/* Un fallo al refrescar deja las cifras anteriores en pantalla y lo
           cuenta arriba: son de hace un momento, no mienten mucho, y vaciarlas
           sería peor. */}
@@ -94,6 +99,21 @@ export const Inicio = () => {
     </div>
   )
 }
+
+/** «Buenos días, Marta» encabezando Inicio, igual que en Pendientes. */
+const Saludo = ({ nombre }: { nombre: string }) => (
+  <div
+    style={{
+      fontFamily: 'var(--font-heading)',
+      fontWeight: 600,
+      fontSize: 22,
+      lineHeight: 1.15,
+    }}
+  >
+    {saludo()}
+    {nombre ? `, ${nombre}` : ''}
+  </div>
+)
 
 const EnCurso = ({ lista, onSeguir }: { lista: ListaAbierta; onSeguir: () => void }) => (
   <div
