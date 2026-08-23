@@ -10,7 +10,7 @@ import { IconoHoja } from '../iconos'
  * necesita una casa.
  */
 export const Login = () => {
-  const { entrar } = useApp()
+  const { entrar, errorSesion } = useApp()
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -102,7 +102,12 @@ export const Login = () => {
           />
         </div>
 
-        {error && <Aviso>{error}</Aviso>}
+        {(error ?? errorSesion) && (
+          <Aviso>
+            {error ??
+              `No se pudo recuperar la sesión guardada (esto no impide entrar): ${errorSesion}`}
+          </Aviso>
+        )}
 
         <button
           type="submit"

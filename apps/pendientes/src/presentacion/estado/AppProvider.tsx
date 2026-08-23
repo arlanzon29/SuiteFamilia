@@ -33,6 +33,7 @@ type Contexto = {
   casos: CasosDeUso
   sesion: Sesion | null
   comprobandoSesion: boolean
+  errorSesion: string | null
   entrar: (email: string, contrasena: string) => Promise<void>
   salir: () => Promise<void>
 
@@ -66,6 +67,7 @@ export const AppProvider = ({
 }) => {
   const [sesion, setSesion] = useState<Sesion | null>(null)
   const [comprobandoSesion, setComprobandoSesion] = useState(true)
+  const [errorSesion, setErrorSesion] = useState<string | null>(null)
 
   const [datos, setDatos] = useState<Instantanea>(VACIO)
   const [cargando, setCargando] = useState(false)
@@ -94,6 +96,14 @@ export const AppProvider = ({
       .sesionActual()
       .then((s) => {
         if (vivo) setSesion(s)
+      })
+      .catch((e) => {
+        // No hay sesión que rescatar (p. ej. el token guardado ha caducado y
+        // no se ha podido renovar). No impide seguir: se entra como si no
+        // hubiera sesión, igual que si `sesionActual` no hubiera lanzado
+        // nada, pero el mensaje se guarda para enseñarlo en Login —en el
+        // móvil no hay consola a mano para verlo de otro modo.
+        if (vivo) setErrorSesion(e instanceof Error ? e.message : String(e))
       })
       .finally(() => {
         if (vivo) setComprobandoSesion(false)
@@ -145,6 +155,7 @@ export const AppProvider = ({
       casos,
       sesion,
       comprobandoSesion,
+      errorSesion,
       entrar,
       salir,
       datos,
@@ -161,6 +172,7 @@ export const AppProvider = ({
       casos,
       sesion,
       comprobandoSesion,
+      errorSesion,
       entrar,
       salir,
       datos,
