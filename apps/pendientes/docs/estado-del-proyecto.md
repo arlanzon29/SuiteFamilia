@@ -2,20 +2,23 @@
 
 Última actualización: **22 de agosto de 2026**.
 
-Lo último: **la cuenta ya es de verdad**. La autenticación entra contra
-Supabase Auth con la misma cuenta de la compra —una sola para toda la suite—,
-y el contenedor elige según `haySupabase` igual que allí. Los pendientes
-siguen en memoria: la tabla es el paso siguiente.
+Lo último: **los datos ya son de verdad**. La tabla `pendientes` está creada y
+la aplicación escribe en ella; con la autenticación, que entró antes, ya no
+queda nada simulado por el camino de Supabase. Deja de ser un escaparate.
 
-Antes: **Pendientes existe**. Las nueve pantallas del boceto están escritas en
-React con las cuatro capas de la compra, corriendo contra repositorios en
-memoria con una semilla realista.
+Con la tabla entran dos cosas que el modelo no tenía: **la fecha en que toca
+hacer algo** —y con ella la regla de que lo apuntado para más adelante no
+aparece hasta que faltan siete días— y **quién apuntó y quién cerró** cada cosa.
+
+Antes: la cuenta pasó a ser la de Supabase Auth, la misma de la compra, con el
+contenedor eligiendo según `haySupabase`. Y antes de eso, las nueve pantallas
+del boceto escritas en React con las cuatro capas de la compra.
 
 > **Lo que queda por comprobar de verdad.** La aplicación compila, pasa
-> `tsc --noEmit` y arranca. Del recorrido de §5 están vistos los pasos 1 y 2
-> —Acceso e Inicio— en claro **y** en oscuro, y suelto el 12 en su parte de
-> desconectar. Los demás **no se han mirado**. Está en §5, con lo que hay que
-> hacer exactamente.
+> `tsc --noEmit` y toda la vuelta está recorrida en el navegador **contra
+> memoria**, sin un error en consola. Lo que **no** se ha probado ni una vez es
+> el repositorio contra la tabla: para eso hay que entrar con la cuenta real, y
+> es lo primero de §6. Falta también el recorrido en **tema oscuro**.
 
 Este documento cuenta lo de dentro de esta aplicación. Lo que afecta a la suite
 entera va en [`../../../docs/estado-de-la-suite.md`](../../../docs/estado-de-la-suite.md).
@@ -31,22 +34,23 @@ entera va en [`../../../docs/estado-de-la-suite.md`](../../../docs/estado-de-la-
 | `tsc --noEmit` | limpio | ✅ |
 | Arranque en modo memoria | arranca y pinta | ✅ |
 | Autenticación contra Supabase Auth | escrita y probada en el navegador | ✅ |
-| Recorrido de las nueve pantallas, claro y oscuro | **a medias**: pasos 1, 2 y el desconectar del 12 | 🟨 |
-| Migración y repositorio de pendientes en Supabase | **sin empezar**, es lo siguiente | ⬜ |
-| Entrada en el flujo de despliegue | hecha, **en modo escaparate** | 🟨 |
+| Migración `06`, la tabla `pendientes` | escrita y **ejecutada** en Supabase | ✅ |
+| `RepositorioPendientes` contra la tabla | escrito | ✅ |
+| Fecha prevista, ventana de 7 días, quién apuntó y quién cerró | escritos y probados contra memoria | ✅ |
+| Recorrido de las pantallas **en claro, contra memoria** | hecho, sin errores en consola | ✅ |
+| El repositorio hablando **con la tabla de verdad** | **sin probar ni una vez** | ⬜ |
+| Recorrido en **tema oscuro** | **sin hacer** | ⬜ |
+| Entrada en el flujo de despliegue | hecha | ✅ |
 
-**Publicada, y con una advertencia que hay que leer entera.** Entra en el
-despliegue antes de tener la tabla, que es al revés de lo que decía este
-documento, y la razón es concreta: era la única forma de abrirla en un móvil
-de verdad e instalarla. El `build` de la raíz ya compila las dos, y el flujo de
-GitHub Actions tiene su bloque; la carpeta `dist` sube entera, con una
-subcarpeta por aplicación.
+**Publicada y, desde la tabla, ya de uso real.** Entró en el despliegue una
+sesión antes de tenerla, con los datos todavía en memoria y sabiendo que aquello
+era un escaparate: era la única forma de abrirla en un móvil de verdad e
+instalarla. Ese aviso **ya no aplica** —lo que se apunte se guarda y lo ve la
+otra persona—, y por eso se ha quitado también del comentario de `deploy.yml`.
 
-Lo que eso significa mientras los datos sigan en memoria: **cada teléfono verá
-la semilla**, lo que se apunte se perderá al recargar y no llegará al de nadie
-más. La cuenta sí es real. Es decir, sirve para mirar el diseño y para
-instalarla, **no para usarla**, y conviene decírselo a quien la abra. Deja de
-ser un escaparate en cuanto entre la tabla `pendientes` del §6.
+El `build` de la raíz compila las dos aplicaciones y el flujo de GitHub Actions
+tiene su bloque; la carpeta `dist` sube entera, con una subcarpeta por
+aplicación.
 
 ## 2. Cómo arrancarla
 
@@ -101,29 +105,48 @@ presentacion  ──►  aplicacion  ──►  dominio
 
 ### `dominio/`
 
-`modelo/pendiente.ts` es todo el modelo, y son **cuatro campos**:
+`modelo/pendiente.ts` es todo el modelo, y son **siete campos**:
 
 ```ts
 type Pendiente = {
   id: string
-  titulo: string          // una línea
-  comentario: string      // puede estar vacío
-  creado: string          // ISO con zona
-  hecho: string | null    // ISO con zona; nulo mientras esté por hacer
+  titulo: string               // una línea
+  descripcion: string          // puede estar vacía
+  creado: string               // ISO con zona
+  creadoPor: string | null     // identificador de cuenta
+  finalizado: string | null    // ISO con zona; nulo mientras esté por hacer
+  finalizadoPor: string | null // nulo mientras esté por hacer
+  fechaPrevista: string | null // YYYY-MM-DD; nulo = «alguna vez»
 }
 ```
 
-Sin prioridades, sin etiquetas, sin personas asignadas. Y `hecho` es toda la
-máquina de estados que hay: nulo es «por hacer», con fecha es «hecho», y
-deshacer es volver a ponerlo a nulo. Por eso no existe ningún booleano aparte
-que pudiera contradecir a la fecha.
+Sin prioridades y sin etiquetas. `creadoPor` y `finalizadoPor` **no son personas
+asignadas**: son historia de quién hizo qué, no reparto de trabajo ni permisos
+—los dos siguen pudiendo verlo, cerrarlo y borrarlo todo—.
 
-Las dos fechas son **instantes**, no días, y van en ISO completo con zona por lo
-mismo que `Lista.creada` en la compra: cortar el ISO por la `T` da el día en
-UTC, que a partir de las diez de la noche en España ya es el de mañana. El día
-se calcula en la pantalla, en la zona de quien mira. Todo lo que cuenta días
-pasa por `presentacion/formato.ts`, que lo hace a mediodía para que el cambio de
-hora no mueva una resta.
+`finalizado` es toda la máquina de estados que hay: nulo es «por hacer», con
+fecha es «hecho», y deshacer es volver a ponerlo a nulo. Se sopesó guardar
+además la letra —`'P'` y `'C'`— y se dejó fuera: dos versiones de lo mismo
+acaban discrepando, y la fecha dice el estado **y** cuándo pasó, que es lo que
+Hechos necesita para agrupar por meses. Está razonado en la migración.
+
+Las dos primeras fechas son **instantes**, no días, y van en ISO completo con
+zona por lo mismo que `Lista.creada` en la compra: cortar el ISO por la `T` da
+el día en UTC, que a partir de las diez de la noche en España ya es el de
+mañana. El día se calcula en la pantalla, en la zona de quien mira. Todo lo que
+cuenta días pasa por `presentacion/formato.ts`, que lo hace a mediodía para que
+el cambio de hora no mueva una resta.
+
+**`fechaPrevista` es al revés: es un día y no un instante.** «Pasar la ITV el 3
+de septiembre» no ocurre a las 11:42, ocurre ese día, así que no lleva hora ni
+zona y se compara con el «hoy» de quien mira sin convertir nada.
+
+De ella sale la única regla nueva de esta fase, y vive **aquí y no en las
+pantallas**: `yaToca` decide qué se enseña —lo que no tiene fecha siempre, y lo
+que la tiene desde siete días antes—. Si el filtro estuviera en cada pantalla,
+bastaría que a una se le olvidara para enseñar lo que aún no toca. Y la resta no
+la hace Postgres a propósito: su `current_date` es UTC, y un pendiente
+aparecería un día antes de la cuenta.
 
 `servicios/agrupacion.ts` tiene lo único que no es trivial: agrupar lo hecho por
 el mes en que se resolvió, en local y no en UTC por el mismo motivo.
@@ -161,8 +184,36 @@ obligaría a mandar además el título y el comentario, con el riesgo de pisarlo
 
 ### `aplicacion/`
 
-Ocho casos de uso, **todos asíncronos** aunque los datos estén en memoria. Es
-justo lo que permite que Supabase entre después sin tocar ni una pantalla.
+Nueve casos de uso, **todos asíncronos**. Es justo lo que permitió que Supabase
+entrara después sin tocar ni una pantalla, y así fue: al cambiar el repositorio
+no se tocó ningún caso de uso.
+
+**Los tres de lectura son el cambio de fondo de esta fase.** Antes había un
+`cargarTodo` que se traía la tabla entera y filtraba en el móvil:
+
+| Caso | Qué trae |
+|---|---|
+| `listarPorHacer()` | todo lo que queda, **incluido lo de más adelante** |
+| `listarUltimosHechos(5)` | solo los cinco últimos resueltos |
+| `contarResueltosEn(mes)` | la cifra del pie de Hechos, **sin bajar ni una fila** |
+
+La asimetría es el fondo del asunto: **lo que está por hacer no crece** —una
+casa tiene unas pocas cosas a medias y se van resolviendo—, pero **lo hecho
+crece indefinidamente**. En dos años son cientos de filas, y traerlas todas en
+cada arranque para pintar dos grupos de mes es el error que en la compra hubo
+que deshacer *después*, con el puerto de listas ya escrito. Aquí se vio antes.
+
+Que la cuenta del mes vaya aparte es consecuencia de acotar el listado: lo
+cargado son los cinco últimos, que pueden ser todos de meses anteriores, así que
+la cifra ya no sale de ahí. Contra Supabase es un `count` de cabecera, más
+barato que ampliar el listado solo para poder contar.
+
+Los tres van en paralelo con `Promise.all`: son independientes, así que la carga
+tarda lo que la más lenta y no lo que las tres sumadas.
+
+Y una regla que cambia: **`editar` sí toca la fecha prevista**, a diferencia de
+las otras dos. `creado` y `finalizado` son registro de lo que pasó y no se
+retocan; la fecha prevista es un plan, y los planes cambian.
 
 El recorte del texto (`titulo.trim()`, y sin título no se crea nada) vive aquí y
 no en la pantalla ni en el repositorio: «un título en blanco no es un pendiente»
@@ -174,13 +225,22 @@ es una regla de la aplicación, no un detalle de la caja de texto ni de la tabla
 comprobación de `haySupabase` de la compra**: con `.env` la autenticación es
 Supabase Auth, sin él es la simulada.
 
-De momento eso deja un **modo mixto, y a propósito**: la cuenta es real y los
-pendientes siguen en memoria. Es el mismo camino que recorrió la compra, donde
-los puertos entraron de uno en uno y no todos a la vez; aquí el orden lo marca
-lo que existe, porque la cuenta ya estaba creada en Supabase y es la misma de
-la compra, mientras que la tabla `pendientes` no tiene todavía ni migración.
-La ventaja de tener un solo sitio donde se decide es justo esta: el modo mixto
-se lee entero en diez líneas y se ve qué es real y qué no.
+Con `.env`, **la autenticación y los pendientes son los dos de Supabase**; sin
+él, los dos simulados. El modo mixto de la sesión anterior —cuenta real, datos
+en memoria— duró lo que tardó en existir la tabla, que es el orden que marcaba
+lo que había: la cuenta ya estaba creada desde la compra y la tabla no.
+
+`supabase/pendientes.ts` implementa `RepositorioPendientes` contra la tabla. Dos
+cosas que conviene saber al leerlo:
+
+- **`id` es un autonumérico en la tabla y texto en el dominio**, así que se
+  convierte al entrar y al salir. Es la única traducción de identidad que hay.
+  Se deja como texto porque un identificador solo se compara y se pasa por la
+  ruta de la ficha: nunca se suma ni se ordena por él.
+- **`creado`, `creado_por` y las dos de cierre no se mandan al insertar.** Las
+  pone la base con `now()` y `auth.uid()`. Al marcar hecho sí viajan calculadas,
+  porque en un `update` normal no se pueden pedir desde el cliente; van las dos
+  en la misma escritura, que es lo que sostiene el `check` de la tabla.
 
 `supabase/cliente.ts` es copia del de la compra, y `supabase/autenticacion.ts`
 también salvo el `import` de `contratos`. No se extrae todavía a un paquete
@@ -279,50 +339,47 @@ Inicio enseña **hasta cinco** de los más antiguos sin hacer, no dos como el
 boceto, y debajo un «Ver los N pendientes» cuando hay más. Con dos, la pantalla
 quedaba medio vacía en un móvil de 812 px.
 
-## 5. Lo que hay que comprobar antes de dar esto por bueno
+## 5. Lo comprobado y lo que falta
 
-El recorrido está **empezado, no terminado**. Lo comprobado hasta ahora, en
-`pendientes-memoria` a 375×812 y en los dos temas:
+### Comprobado, en `pendientes-memoria` a 375×812 y sin un error en consola
 
-- **Paso 1, Acceso.** Entra con un correo con «@» y cualquier contraseña.
-  Comprobado además el fallo: con la contraseña vacía sale «Correo o contraseña
-  incorrectos.», y el aviso **se lee bien en oscuro** —filete de oro sobre
-  fondo de acento, no se pierde contra el fondo—. Conviene saber que el campo
-  de contraseña lleva «••••••••» de marcador de posición y **parece relleno
-  cuando está vacío**: es lo que hace creer que el botón no responde.
-- **Paso 2, Inicio.** Saludo, fecha y los cinco más antiguos con «hace N días».
-- **Paso 12, a medias.** Desconectar vuelve a Acceso, borra la sesión guardada
-  y no deja errores en consola. El tema claro/oscuro del mismo paso sigue sin
-  probarse a conciencia.
+| | Qué se vio |
+|---|---|
+| **Acceso** | Entra con un correo con «@». Con la contraseña vacía sale «Correo o contraseña incorrectos.», y el aviso **se lee bien en oscuro** |
+| **Inicio** | Saludo, fecha y los cinco más antiguos con «hace N días» |
+| **Pendientes** | Cinco filas, la más antigua arriba; la secundaria recorta a dos renglones |
+| **La ventana de 7 días** | Los apuntados a 24 y 60 días **no** salen en la lista: se pliegan en «2 apuntados para más adelante», y al desplegarlos cada uno dice «Toca en N días» |
+| **Nuevo** | Con fecha a 3 días, la fila aparece como «Toca en 3 días» |
+| **Ficha** | Las dos fechas enfrentadas con **quién** —«hace 3 días · la otra persona»—, la fecha prevista aparte, y la descripción a la izquierda |
+| **Editar** | Los tres campos vienen rellenos, fecha incluida; al moverla a 40 días el pendiente salta a «más adelante» |
+| **Darlo por hecho** | Sube a Hechos, firma «hoy · tú», y la fecha prevista deja de enseñarse |
+| **Hechos** | Cinco filas exactas en sus grupos de mes, y el pie pasa de 4 a 5 al cerrar uno — **la cuenta es correcta aunque el listado no la contenga**, que es justo lo que se buscaba al pedirla aparte |
+| **Deshacer** | Devuelve fecha y persona a nulo a la vez, y reaparece la fecha prevista |
+| **Borrar** | Confirmación, y al aceptar sale de la ficha a la pantalla de la que venía, sin dejarla en blanco |
+| **Desconectar** | Vuelve a Acceso y borra la sesión guardada |
 
-Y una comprobación que no estaba en la lista, porque entonces no había qué
-comprobar: en la entrada `pendientes`, con el `.env` de la raíz, el login sale
-a `/auth/v1/token?grant_type=password` del proyecto y el servidor rechaza unas
-credenciales que la simulada habría aceptado. Es decir: la autenticación real
-está en el camino, no solo escrita.
+De la autenticación real, además: en la entrada `pendientes`, con el `.env` de
+la raíz, el login sale a `/auth/v1/token?grant_type=password` del proyecto y el
+servidor rechaza unas credenciales que la simulada habría aceptado.
 
-**Lo demás sigue sin mirarse.** El recorrido entero, en orden, en
-`pendientes-memoria` y a 375×812:
+Y las ocho columnas que pide `supabase/pendientes.ts` coinciden con las de la
+migración, comprobado comparando las dos listas.
 
-1. **Acceso** → entrar con cualquier correo con «@».
-2. **Inicio**: saludo, fecha larga, los cinco más antiguos con «hace N días».
-3. **Pendientes**: cinco filas, la más antigua arriba; la línea secundaria
-   recorta a dos renglones.
-4. **Nuevo**: el diálogo pegado arriba; guardar y ver la fila aparecer.
-5. **Ficha**: las dos fechas enfrentadas, «Se hizo» en «—» y «todavía por
-   hacer»; el comentario en tres párrafos y **a la izquierda**.
-6. **Editar** desde el botón de la cabecera: los campos vienen rellenos.
-7. **Darlo por hecho** → sale de Pendientes y aparece en Hechos.
-8. **Hechos**: dos grupos de mes, el rótulo con mayúscula, el pie con la cuenta
-   del mes en curso.
-9. **Deshacer** desde la ficha de uno hecho → vuelve a Pendientes.
-10. **Borrar** desde la ficha: confirmación, y al aceptar se sale de la ficha
-    sin dejar una pantalla en blanco.
-11. **Vacío**: dar por hecho o borrar los cinco y ver «La casa está al día».
-12. **Ajustes**: tema claro/oscuro y desconectar.
-13. **Todo lo anterior otra vez en oscuro**, que es donde el boceto se había
-    inventado los colores y donde más fácil es que algo se pierda contra el
-    fondo.
+### Lo que falta
+
+1. **El repositorio contra la tabla de verdad. No ha hablado con ella ni una
+   vez**, y es lo único importante que queda: todo lo de arriba es contra
+   memoria. Hace falta entrar con la cuenta real, y entonces mirar que crear
+   escriba fila, que `creado_por` se rellene solo, que dar por hecho selle las
+   dos columnas y que la cuenta del mes salga del `count`.
+2. **El recorrido en tema oscuro**, que sigue sin hacerse salvo Acceso. Es
+   donde el boceto se había inventado los colores y donde más fácil es que algo
+   se pierda contra el fondo. Lo nuevo de esta fase —la línea de «más
+   adelante», la fecha prevista de la ficha, el campo de fecha del diálogo— no
+   se ha visto en oscuro **nunca**.
+3. **El estado vacío**, que no se ha vuelto a ver desde que la lista tiene dos
+   secciones: hay que comprobar que «La casa está al día» sale cuando no queda
+   nada *y* que no aparece cuando lo único que queda está en «más adelante».
 
 Dos avisos de método. La herramienta de clicks del navegador se colgaba en cada
 pulsación; si vuelve a pasar, cerrar y reabrir el panel del navegador lo
