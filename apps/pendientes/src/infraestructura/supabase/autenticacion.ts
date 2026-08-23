@@ -25,6 +25,12 @@ const mensaje = (error: { message: string }): string => {
   return error.message
 }
 
+/** El nombre vive en `user_metadata.full_name`; ahí es donde lo lee también el Dashboard. */
+const nombreDeMetadatos = (meta: Record<string, unknown> | undefined): string | null => {
+  const v = meta?.full_name
+  return typeof v === 'string' && v.trim() ? v.trim() : null
+}
+
 export const autenticacionSupabase = (sb: SupabaseClient): ServicioAutenticacion => ({
   async sesionActual(): Promise<Sesion | null> {
     // Lee la sesión guardada y la renueva si hacía falta; no llama a la red
@@ -32,7 +38,7 @@ export const autenticacionSupabase = (sb: SupabaseClient): ServicioAutenticacion
     const { data, error } = await sb.auth.getSession()
     if (error) throw new Error(mensaje(error))
     const u = data.session?.user
-    return u?.email ? { id: u.id, email: u.email } : null
+    return u?.email ? { id: u.id, email: u.email, nombre: nombreDeMetadatos(u.user_metadata) } : null
   },
 
   async entrar(email: string, contrasena: string): Promise<Sesion> {
@@ -43,11 +49,19 @@ export const autenticacionSupabase = (sb: SupabaseClient): ServicioAutenticacion
     if (error) throw new Error(mensaje(error))
     const u = data.user
     if (!u?.email) throw new Error('La cuenta no tiene correo asociado.')
-    return { id: u.id, email: u.email }
+    return { id: u.id, email: u.email, nombre: nombreDeMetadatos(u.user_metadata) }
   },
 
   async salir(): Promise<void> {
     const { error } = await sb.auth.signOut()
     if (error) throw new Error(mensaje(error))
+  },
+
+  async actualizarNombre(nombre: string): Promise<Sesion> {
+    const { data, error } = await sb.auth.updateUser({ data: { full_name: nombre } })
+    if (error) throw new Error(mensaje(error))
+    const u = data.user
+    if (!u?.email) throw new Error('La cuenta no tiene correo asociado.')
+    return { id: u.id, email: u.email, nombre: nombreDeMetadatos(u.user_metadata) }
   },
 })

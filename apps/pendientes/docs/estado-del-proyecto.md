@@ -2,7 +2,25 @@
 
 Última actualización: **23 de agosto de 2026**.
 
-Lo último: **Inicio filtra por importante y enseña dos cifras**. «Lo más
+Lo último: **la cuenta tiene nombre, y se cambia desde Ajustes**. El saludo de
+Inicio decía «Buenos días, Arlanzon29» —la parte del correo antes de la
+`@`, con la primera letra en mayúscula—, porque Supabase Auth no trae un
+nombre de serie y el Dashboard no deja editar el metadato del usuario a mano
+(el panel de detalle solo enseña `Raw JSON`, de solo lectura; no hay «Edit
+user» en esta versión). La salida no era la API de administración —pedía la
+clave `service_role`, que no debe salir de la consola de Supabase—, sino que
+cada cuenta cambie **su propio** metadato: `sb.auth.updateUser({ data:
+{ full_name } })` es una llamada que cualquier usuario autenticado puede
+hacer sobre sí mismo. `Sesion` gana un campo `nombre: string | null`,
+`ServicioAutenticacion` gana `actualizarNombre(nombre)`, y las dos
+implementaciones —Supabase y memoria— lo respetan. La pantalla lee y escribe
+`user_metadata.full_name`, que es el mismo campo que usa el Dashboard para la
+columna «Display name»: cambiarlo desde la aplicación también la rellena
+allí. Ajustes tiene ahora un campo de texto junto al botón «Guardar», entre
+«Tema» y «Correo»; Inicio prefiere `sesion.nombre` y solo cae en derivarlo del
+correo si aún no se ha guardado ninguno.
+
+Antes: **Inicio filtra por importante y enseña dos cifras**. «Lo más
 antiguo sin hacer» ya no mezcla todo lo que toca: solo enseña lo marcado como
 importante, y el kicker pasa a decir «Lo más antiguo **importante** sin
 hacer» para que quede claro qué se está mirando. Si hay pendientes pero
@@ -170,7 +188,7 @@ Son tres:
 
 ```ts
 interface RepositorioPendientes { listar, obtener, crear, editar, marcarHecho, borrar }
-interface ServicioAutenticacion { sesionActual, entrar, salir }
+interface ServicioAutenticacion { sesionActual, entrar, salir, actualizarNombre }
 interface Reloj { hoy }
 ```
 

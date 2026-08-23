@@ -36,6 +36,7 @@ type Contexto = {
   errorSesion: string | null
   entrar: (email: string, contrasena: string) => Promise<void>
   salir: () => Promise<void>
+  actualizarNombre: (nombre: string) => Promise<void>
 
   datos: Instantanea
   cargando: boolean
@@ -131,6 +132,13 @@ export const AppProvider = ({
     nav.pestana('inicio')
   }, [casos, nav])
 
+  const actualizarNombre = useCallback(
+    async (nombre: string) => {
+      setSesion(await casos.actualizarNombre(nombre))
+    },
+    [casos],
+  )
+
   const acciones = useMemo<Acciones>(() => {
     /** Envuelve un caso de uso para que lo cargado quede al día al acabar. */
     const tras =
@@ -158,6 +166,7 @@ export const AppProvider = ({
       errorSesion,
       entrar,
       salir,
+      actualizarNombre,
       datos,
       cargando,
       error,
@@ -175,6 +184,7 @@ export const AppProvider = ({
       errorSesion,
       entrar,
       salir,
+      actualizarNombre,
       datos,
       cargando,
       error,

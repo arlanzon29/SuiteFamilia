@@ -18,9 +18,26 @@ import { IconoDesconectar } from '../iconos'
  * estados de carga que cuesta provocar. Aquí no hay nada equivalente.
  */
 export const Ajustes = () => {
-  const { sesion, salir, tema } = useApp()
+  const { sesion, salir, actualizarNombre, tema } = useApp()
   const [error, setError] = useState<string | null>(null)
   const [saliendo, setSaliendo] = useState(false)
+
+  const [nombre, setNombre] = useState(sesion?.nombre ?? '')
+  const [guardandoNombre, setGuardandoNombre] = useState(false)
+  const [errorNombre, setErrorNombre] = useState<string | null>(null)
+
+  /** El nombre de pila, para el saludo de Inicio. Se guarda en el metadato de la cuenta. */
+  const guardarNombre = async () => {
+    setGuardandoNombre(true)
+    setErrorNombre(null)
+    try {
+      await actualizarNombre(nombre)
+    } catch (e) {
+      setErrorNombre(textoError(e))
+    } finally {
+      setGuardandoNombre(false)
+    }
+  }
 
   /**
    * Desconectar ya llama a Supabase, y por tanto ya puede fallar de verdad:
@@ -80,6 +97,34 @@ export const Ajustes = () => {
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div className="kicker-neutral">Cuenta</div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '12px 0',
+            borderBottom: '1px solid var(--color-divider)',
+          }}
+        >
+          <span style={{ fontSize: 16, flexShrink: 0 }}>Nombre</span>
+          <input
+            className="input"
+            style={{ flex: 1, minHeight: 44, fontSize: 16 }}
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Cómo quieres que te llamemos"
+            maxLength={40}
+          />
+          <button
+            className="btn btn-secondary"
+            style={{ minHeight: 44, flexShrink: 0 }}
+            onClick={() => void guardarNombre()}
+            disabled={guardandoNombre || nombre.trim() === (sesion?.nombre ?? '')}
+          >
+            {guardandoNombre ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
+        {errorNombre && <Aviso>{errorNombre}</Aviso>}
         <div
           style={{
             display: 'flex',

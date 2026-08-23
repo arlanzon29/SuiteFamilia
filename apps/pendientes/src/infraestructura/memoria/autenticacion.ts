@@ -34,7 +34,7 @@ export const autenticacionMemoria = (): ServicioAutenticacion => ({
     if (!email.includes('@') || !contrasena) {
       throw new Error('Correo o contraseña incorrectos.')
     }
-    const sesion: Sesion = { id: ID_LOCAL, email }
+    const sesion: Sesion = { id: ID_LOCAL, email, nombre: null }
     try {
       localStorage.setItem(CLAVE, JSON.stringify(sesion))
     } catch {
@@ -48,5 +48,16 @@ export const autenticacionMemoria = (): ServicioAutenticacion => ({
     } catch {
       // nada que limpiar
     }
+  },
+  async actualizarNombre(nombre: string): Promise<Sesion> {
+    const crudo = localStorage.getItem(CLAVE)
+    const actual = crudo ? (JSON.parse(crudo) as Sesion) : { id: ID_LOCAL, email: '', nombre: null }
+    const sesion: Sesion = { ...actual, nombre: nombre.trim() || null }
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify(sesion))
+    } catch {
+      // sin almacenamiento el cambio dura lo que la pestaña; no es un error
+    }
+    return sesion
   },
 })

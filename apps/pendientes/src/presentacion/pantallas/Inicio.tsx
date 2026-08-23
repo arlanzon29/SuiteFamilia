@@ -21,7 +21,7 @@ const CUANTOS = 5
 export const Inicio = () => {
   const { casos, datos, sesion, cargando, error, nav } = useApp()
   const hoy = casos.hoy()
-  const nombre = nombreDe(sesion?.email ?? '')
+  const nombre = sesion?.nombre ?? nombreDe(sesion?.email ?? '')
   const todoPendiente = listaTodoPorHacer(datos)
   const totalImportantes = todoPendiente.filter((p) => p.importante).length
   const todos = listaPorHacer(datos, hoy)
