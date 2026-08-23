@@ -1,5 +1,5 @@
 import { useApp } from '../estado/AppProvider'
-import { listaPorHacer } from '../estado/consultas'
+import { listaPorHacer, listaTodoPorHacer } from '../estado/consultas'
 import { Aviso } from '../componentes/Aviso'
 import { diaCompleto, hace, nombreDe, plural, saludo } from '../formato'
 import { IconoAvanzar } from '../iconos'
@@ -22,8 +22,11 @@ export const Inicio = () => {
   const { casos, datos, sesion, cargando, error, nav } = useApp()
   const hoy = casos.hoy()
   const nombre = nombreDe(sesion?.email ?? '')
+  const todoPendiente = listaTodoPorHacer(datos)
+  const totalImportantes = todoPendiente.filter((p) => p.importante).length
   const todos = listaPorHacer(datos, hoy)
-  const antiguos = todos.slice(0, CUANTOS)
+  const importantes = todos.filter((p) => p.importante)
+  const antiguos = importantes.slice(0, CUANTOS)
 
   return (
     <div
@@ -55,7 +58,14 @@ export const Inicio = () => {
         </div>
       </div>
 
-      {antiguos.length === 0 ? (
+      {todoPendiente.length > 0 && (
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Cifra valor={todoPendiente.length} etiqueta={plural(todoPendiente.length, 'pendiente', 'pendientes')} />
+          <Cifra valor={totalImportantes} etiqueta={plural(totalImportantes, 'importante', 'importantes')} />
+        </div>
+      )}
+
+      {todos.length === 0 ? (
         <div
           style={{
             border: '1px dashed var(--color-divider)',
@@ -84,9 +94,14 @@ export const Inicio = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 5 }}>
-            <span className="kicker-neutral">Lo más antiguo sin hacer</span>
+            <span className="kicker-neutral">Lo más antiguo importante sin hacer</span>
             <span style={{ flex: 1, height: 1, background: 'var(--color-divider)' }} />
           </div>
+          {antiguos.length === 0 && (
+            <p style={{ margin: '4px 2px 0', fontSize: 13, color: 'var(--color-neutral-600)' }}>
+              Nada marcado como importante de lo que ya toca.
+            </p>
+          )}
           {antiguos.map((p) => (
             <button
               key={p.id}
@@ -121,7 +136,7 @@ export const Inicio = () => {
               </span>
             </button>
           ))}
-          {todos.length > antiguos.length && (
+          {importantes.length > antiguos.length && (
             <button
               onClick={() => nav.pestana('pendientes')}
               style={{
@@ -134,7 +149,7 @@ export const Inicio = () => {
                 paddingTop: 6,
               }}
             >
-              Ver los {plural(todos.length, 'pendiente', 'pendientes')}
+              Ver los {plural(importantes.length, 'pendiente', 'pendientes')}
               <IconoAvanzar size={15} />
             </button>
           )}
@@ -145,6 +160,31 @@ export const Inicio = () => {
     </div>
   )
 }
+
+const Cifra = ({ valor, etiqueta }: { valor: number; etiqueta: string }) => (
+  <div
+    style={{
+      flex: 1,
+      border: '1px solid var(--color-divider)',
+      borderRadius: 'var(--radius-md)',
+      padding: '12px 10px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      alignItems: 'flex-start',
+    }}
+  >
+    <span
+      className="cifra"
+      style={{ fontFamily: 'var(--font-heading)', fontSize: 26, lineHeight: 1 }}
+    >
+      {valor}
+    </span>
+    <span style={{ fontSize: 11, color: 'var(--color-neutral-600)', lineHeight: 1.25 }}>
+      {etiqueta}
+    </span>
+  </div>
+)
 
 /**
  * El sello de la compilación, abajo del todo y en voz baja.

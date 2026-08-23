@@ -1,8 +1,18 @@
 # Estado del proyecto
 
-Última actualización: **22 de agosto de 2026**.
+Última actualización: **23 de agosto de 2026**.
 
-Lo último: **los datos ya son de verdad**. La tabla `pendientes` está creada y
+Lo último: **Inicio filtra por importante y enseña dos cifras**. «Lo más
+antiguo sin hacer» ya no mezcla todo lo que toca: solo enseña lo marcado como
+importante, y el kicker pasa a decir «Lo más antiguo **importante** sin
+hacer» para que quede claro qué se está mirando. Si hay pendientes pero
+ninguno importante, sale un aviso en su lugar en vez del estado vacío general
+—ese sigue siendo solo para cuando no queda nada por hacer—. Debajo del saludo
+y antes de esa lista se añaden dos cuadros, el mismo componente `Cifra` que ya
+tenía Inicio en `apps/compra`: el total de pendientes y el total de
+importantes, los dos contando **todo** el histórico y no solo lo que ya toca.
+
+Antes: **los datos ya son de verdad**. La tabla `pendientes` está creada y
 la aplicación escribe en ella; con la autenticación, que entró antes, ya no
 queda nada simulado por el camino de Supabase. Deja de ser un escaparate.
 
@@ -10,9 +20,9 @@ Con la tabla entran dos cosas que el modelo no tenía: **la fecha en que toca
 hacer algo** —y con ella la regla de que lo apuntado para más adelante no
 aparece hasta que faltan siete días— y **quién apuntó y quién cerró** cada cosa.
 
-Antes: la cuenta pasó a ser la de Supabase Auth, la misma de la compra, con el
-contenedor eligiendo según `haySupabase`. Y antes de eso, las nueve pantallas
-del boceto escritas en React con las cuatro capas de la compra.
+Y antes de eso: la cuenta pasó a ser la de Supabase Auth, la misma de la
+compra, con el contenedor eligiendo según `haySupabase`. Y antes de eso, las
+nueve pantallas del boceto escritas en React con las cuatro capas de la compra.
 
 > **Lo que queda por comprobar de verdad.** La aplicación compila, pasa
 > `tsc --noEmit` y toda la vuelta está recorrida en el navegador **contra
@@ -338,6 +348,15 @@ cuál pintar, y esa decisión es de la lista.
 Inicio enseña **hasta cinco** de los más antiguos sin hacer, no dos como el
 boceto, y debajo un «Ver los N pendientes» cuando hay más. Con dos, la pantalla
 quedaba medio vacía en un móvil de 812 px.
+
+### Y otra, después de tener el campo `importante`
+
+Con el filtro de «solo importantes» ya escrito en la pantalla de Pendientes,
+Inicio pasó a usarlo también, pero **sin el chip**: en Inicio no hay elección,
+lo más antiguo que se enseña siempre es lo importante, y el kicker lo dice.
+Debajo del saludo se añadieron además dos cuadros con el total de pendientes y
+el total de importantes, copiando el componente `Cifra` de
+`apps/compra/src/presentacion/pantallas/Inicio.tsx` tal cual.
 
 ## 5. Lo comprobado y lo que falta
 
