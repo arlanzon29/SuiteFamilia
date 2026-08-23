@@ -1,6 +1,6 @@
 import type { Pendiente } from '../../dominio/modelo'
 import { cuando, cuandoToca, primeraLinea } from '../formato'
-import { IconoHecho } from '../iconos'
+import { IconoHecho, IconoImportante } from '../iconos'
 
 /**
  * Las dos filas de la aplicación. Comparten la caja —72 px de alto mínimo,
@@ -65,7 +65,12 @@ export const FilaPorHacer = ({
     : `Anotado ${cuando(p.creado, hoy)}`
   return (
     <button onClick={abrir} style={{ ...CAJA, display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span style={TITULO}>{p.titulo}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {p.importante && (
+          <IconoImportante size={16} color="var(--color-accent)" />
+        )}
+        <span style={TITULO}>{p.titulo}</span>
+      </span>
       <span className="cifra" style={SECUNDARIA}>
         {cabeza}
         {nota && ` · ${nota}`}
@@ -88,7 +93,12 @@ export const FilaHecha = ({
       <IconoHecho size={18} color="var(--color-accent)" />
     </span>
     <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span style={{ ...TITULO, fontSize: 18 }}>{p.titulo}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {p.importante && (
+          <IconoImportante size={16} color="var(--color-accent)" />
+        )}
+        <span style={{ ...TITULO, fontSize: 18 }}>{p.titulo}</span>
+      </span>
       <span className="cifra" style={{ ...SECUNDARIA, WebkitLineClamp: 1 }}>
         Hecho {p.finalizado ? cuando(p.finalizado, hoy) : ''} · anotado {cuando(p.creado, hoy)}
       </span>

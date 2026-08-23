@@ -39,6 +39,10 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
   const [fechaPrevista, setFechaPrevista] = useState(
     dlg.tipo === 'editar' ? (editado?.fechaPrevista ?? '') : '',
   )
+  /** Por defecto `false`: la mayoría de lo que se apunta no lo es. */
+  const [importante, setImportante] = useState(
+    dlg.tipo === 'editar' ? (editado?.importante ?? false) : false,
+  )
   const [error, setError] = useState<string | null>(null)
 
   const cerrar = () => setDlg(null)
@@ -95,7 +99,7 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
 
   const guardar = async () => {
     if (!titulo.trim()) return
-    const entrada = { titulo, descripcion, fechaPrevista }
+    const entrada = { titulo, descripcion, fechaPrevista, importante }
     if (esNuevo) await acciones.crearPendiente(entrada)
     else await acciones.editarPendiente(dlg.id, entrada)
     setDlg(null)
@@ -162,6 +166,33 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
             ? 'Aparecerá en la lista una semana antes.'
             : 'Sin fecha se ve en la lista desde ya.'}
         </span>
+      </div>
+      {/*
+        Va la última, y sin campo de fecha detrás por medio: es un matiz, no
+        un dato que haga falta rellenar. Una casilla, no una escala de
+        prioridades, que en una casa de dos no hace falta.
+      */}
+      <div className="field">
+        <label
+          htmlFor="importante"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            fontSize: 15,
+            color: 'var(--color-text)',
+          }}
+        >
+          <input
+            id="importante"
+            type="checkbox"
+            checked={importante}
+            onChange={(e) => setImportante(e.target.checked)}
+            style={{ width: 18, height: 18 }}
+          />
+          Importante
+        </label>
       </div>
       {error && <Aviso>{error}</Aviso>}
       <div className="dialog-actions">

@@ -49,6 +49,7 @@ export const repositorioPendientesMemoria = (a: Almacen): RepositorioPendientes 
       finalizado: null,
       finalizadoPor: null,
       fechaPrevista: datos.fechaPrevista,
+      importante: datos.importante,
     }
     a.pendientes.push(p)
     return { ...p }
@@ -60,6 +61,7 @@ export const repositorioPendientesMemoria = (a: Almacen): RepositorioPendientes 
     p.titulo = datos.titulo
     p.descripcion = datos.descripcion
     p.fechaPrevista = datos.fechaPrevista
+    p.importante = datos.importante
     return { ...p }
   },
 

@@ -30,10 +30,12 @@ type Fila = {
   finalizado: string | null
   finalizado_por: string | null
   fecha_prevista: string | null
+  importante: boolean
 }
 
 /** Las columnas que se piden. Explícitas, para que un `select *` no traiga de más. */
-const COLUMNAS = 'id, titulo, descripcion, creado, creado_por, finalizado, finalizado_por, fecha_prevista'
+const COLUMNAS =
+  'id, titulo, descripcion, creado, creado_por, finalizado, finalizado_por, fecha_prevista, importante'
 
 const aDominio = (f: Fila): Pendiente => ({
   id: String(f.id),
@@ -44,6 +46,7 @@ const aDominio = (f: Fila): Pendiente => ({
   finalizado: f.finalizado,
   finalizadoPor: f.finalizado_por,
   fechaPrevista: f.fecha_prevista,
+  importante: f.importante,
 })
 
 /** Supabase responde en inglés; la interfaz habla en castellano. */
@@ -132,6 +135,7 @@ export const repositorioPendientesSupabase = (
         titulo: datos.titulo,
         descripcion: datos.descripcion,
         fecha_prevista: datos.fechaPrevista,
+        importante: datos.importante,
       })
       .select(COLUMNAS)
       .single()
@@ -147,6 +151,7 @@ export const repositorioPendientesSupabase = (
         titulo: datos.titulo,
         descripcion: datos.descripcion,
         fecha_prevista: datos.fechaPrevista,
+        importante: datos.importante,
       })
       .eq('id', Number(id))
       .select(COLUMNAS)

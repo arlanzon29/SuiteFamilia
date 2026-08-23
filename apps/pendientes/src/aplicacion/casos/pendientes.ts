@@ -13,6 +13,7 @@ export type Entrada = {
   titulo: string
   descripcion: string
   fechaPrevista: string | null
+  importante: boolean
 }
 
 /**
@@ -33,6 +34,7 @@ const limpia = (e: Entrada): Entrada | null => {
     // en el modelo es nulo. Normalizarlo aquí evita que la distinción entre
     // «''» y «null» llegue a la tabla.
     fechaPrevista: e.fechaPrevista || null,
+    importante: e.importante,
   }
 }
 

@@ -52,6 +52,8 @@ type Fila = {
    * hasta que se acerquen.
    */
   previsto?: number
+  /** Si se marca como importante. Por defecto, `false`. */
+  importante?: boolean
 }
 
 const FILAS: Fila[] = [
@@ -63,6 +65,7 @@ const FILAS: Fila[] = [
     resuelto: null,
     // Dentro de la ventana: quedan menos de siete días, así que se ve.
     previsto: 5,
+    importante: true,
   },
   {
     titulo: 'Cambiar el filtro del extractor',
@@ -77,6 +80,7 @@ const FILAS: Fila[] = [
       'El técnico que vino en marzo dejó dicho que la revisión anual toca en septiembre, antes de encender la calefacción. Conviene llamar ahora, que en octubre no hay huecos y acabamos otro invierno con los radiadores del salón a medio gas.\n\nHay que preguntar también por el ruido que hace al arrancar por la mañana, ese golpe seco en la tubería del pasillo. Apuntó que podía ser aire en el circuito y que se purga en diez minutos, pero se fue sin hacerlo.\n\nEl contrato de mantenimiento está en la carpeta azul del mueble de la entrada, con la factura del año pasado grapada detrás. Si el precio ha vuelto a subir, merece la pena pedir presupuesto al servicio del barrio antes de renovar.',
     anotado: 5,
     resuelto: null,
+    importante: true,
   },
   {
     titulo: 'Cambiar las pilas del detector de humo',
@@ -175,5 +179,6 @@ export const semilla = (): Semilla => ({
     // Van juntas siempre: sin fecha de cierre no hay quien lo cerró.
     finalizadoPor: f.resuelto === null ? null : i % 3 === 0 ? LA_OTRA : YO,
     fechaPrevista: f.previsto === undefined ? null : dentroDe(f.previsto),
+    importante: f.importante ?? false,
   })),
 })

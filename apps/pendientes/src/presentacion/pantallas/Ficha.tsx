@@ -3,7 +3,7 @@ import { useApp } from '../estado/AppProvider'
 import { pendiente } from '../estado/consultas'
 import { Aviso, textoError } from '../componentes/Aviso'
 import { cuandoToca, diaCorto, fechaLarga, hace, quien } from '../formato'
-import { IconoBorrar, IconoDeshacer, IconoHecho } from '../iconos'
+import { IconoBorrar, IconoDeshacer, IconoHecho, IconoImportante } from '../iconos'
 
 /**
  * Un pendiente entero: el título grande, las dos fechas enfrentadas y el
@@ -59,8 +59,14 @@ export const Ficha = ({ id }: { id: string }) => {
           fontWeight: 600,
           fontSize: 30,
           lineHeight: 1.12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
         }}
       >
+        {p.importante && (
+          <IconoImportante size={24} color="var(--color-accent)" />
+        )}
         {p.titulo}
       </h1>
 

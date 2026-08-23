@@ -1,6 +1,6 @@
 import type { Instantanea } from '../../aplicacion'
 import type { Pendiente } from '../../dominio/modelo'
-import { porHacer, paraMasAdelante } from '../../dominio/modelo'
+import { porHacer, paraMasAdelante, todoPorHacer } from '../../dominio/modelo'
 import { porMeses, type GrupoMes } from '../../dominio/servicios/agrupacion'
 
 /**
@@ -26,6 +26,9 @@ export const listaPorHacer = (d: Instantanea, hoy: string): Pendiente[] =>
 /** Lo apuntado para más adelante, que todavía no se enseña en la lista. */
 export const listaMasAdelante = (d: Instantanea, hoy: string): Pendiente[] =>
   paraMasAdelante(d.porHacer, hoy)
+
+/** Todo lo que queda por hacer, sin la ventana de aparición: el filtro «todo el histórico». */
+export const listaTodoPorHacer = (d: Instantanea): Pendiente[] => todoPorHacer(d.porHacer)
 
 /** Lo resuelto que se ha traído, de lo más reciente a lo más antiguo. */
 export const listaHechos = (d: Instantanea): Pendiente[] => d.ultimosHechos

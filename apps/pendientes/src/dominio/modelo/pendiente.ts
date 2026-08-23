@@ -59,6 +59,12 @@ export type Pendiente = {
    * convertir nada.
    */
   fechaPrevista: string | null
+  /**
+   * Si es urgente o merece destacarse en la lista. Por defecto, `false`: la
+   * mayoría de lo que se apunta en una casa no lo es, y marcarlo así es una
+   * decisión explícita de quien lo anota o lo edita.
+   */
+  importante: boolean
 }
 
 export const estaHecho = (p: Pendiente): boolean => p.finalizado !== null
@@ -114,6 +120,19 @@ export const porHacer = (ps: Pendiente[], hoy: string): Pendiente[] =>
   ps
     .filter((p) => !estaHecho(p) && yaToca(p, hoy))
     .sort((a, b) => a.creado.localeCompare(b.creado))
+
+/**
+ * Todo lo que queda por hacer, **sin la ventana de aparición**: incluye lo
+ * apuntado para más adelante, mezclado con lo que ya toca.
+ *
+ * Es para el filtro «todo el histórico» de la pantalla de Pendientes, que
+ * existe para cuando hace falta ver de un vistazo todo lo que hay a medias en
+ * la casa, sin esperar a que se acerque la fecha de cada cosa. El orden es el
+ * mismo que el de `porHacer` —lo más antiguo primero— para que activar el
+ * filtro no reordene lo que ya se estaba mirando.
+ */
+export const todoPorHacer = (ps: Pendiente[]): Pendiente[] =>
+  ps.filter((p) => !estaHecho(p)).sort((a, b) => a.creado.localeCompare(b.creado))
 
 /** Lo que está apuntado para más adelante y todavía no se enseña. */
 export const paraMasAdelante = (ps: Pendiente[], hoy: string): Pendiente[] =>

@@ -17,6 +17,8 @@ export type DatosPendiente = {
   descripcion: string
   /** `YYYY-MM-DD`, o nulo para «alguna vez». */
   fechaPrevista: string | null
+  /** Si merece destacarse en la lista. Por defecto, `false`. */
+  importante: boolean
 }
 
 export interface RepositorioPendientes {

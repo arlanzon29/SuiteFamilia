@@ -191,6 +191,19 @@ export const IconoHoja = (p: Props) => (
   </Svg>
 )
 
+/**
+ * `circle-alert`. La marca de «importante»: la admiración de siempre, dentro
+ * de un círculo para que se lea igual de bien suelta en una fila que al lado
+ * del título en la ficha.
+ */
+export const IconoImportante = (p: Props) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 8v4" />
+    <path d="M12 16h.01" />
+  </Svg>
+)
+
 // ─── Tema ───
 
 /** `sun` */
