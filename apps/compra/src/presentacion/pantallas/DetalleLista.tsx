@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
-import { AnimatePresence, animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  type MotionValue,
+  type PanInfo,
+} from 'framer-motion'
 import { ordenDeCompra, pendientes } from '../../dominio/modelo'
 import type { Articulo, ItemLista, Precio, Supermercado } from '../../dominio/modelo'
 import { useApp } from '../estado/AppProvider'
@@ -32,7 +39,21 @@ import { IconoAvanzar, IconoBorrar, IconoMas } from '../iconos'
  * tocando la última fila. Hasta que las listas fueron de Supabase esto no hacía
  * falta, porque en memoria nada fallaba nunca.
  */
-export const DetalleLista = ({ listaId }: { listaId: string }) => {
+export const DetalleLista = ({
+  listaId,
+  estiramiento,
+}: {
+  listaId: string
+  /**
+   * Motion value del estiramiento de bordes (ver `App.tsx` y
+   * `docs/gestos-lista-swipe.md` §4). Se aplica aquí, a un `motion.div` que
+   * envuelve el contenido con scroll **sin el botón flotante**: si el botón
+   * quedara dentro de un antecesor con `transform`, ese antecesor se
+   * convertiría en su «containing block» y el botón se movería con el
+   * estiramiento en vez de quedarse fijo (§8 del documento).
+   */
+  estiramiento: MotionValue<number>
+}) => {
   const { datos, acciones, nav, sim, setSim, imagenes, setVisor, setQ, setPanelAnadir } =
     useApp()
   const actual = lista(datos, listaId)
@@ -64,6 +85,7 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
 
   return (
     <div>
+      <motion.div style={{ y: estiramiento }}>
       {bloqueada && (
         <div
           style={{
@@ -210,6 +232,7 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
           </div>
         </>
       )}
+      </motion.div>
 
       {/*
         La barra fija de «Añadir artículo del catálogo» competía con la

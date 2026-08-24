@@ -24,10 +24,15 @@ entonces fundir el resultado en la pantalla real.
   (§2): el catálogo no borra artículos desde la fila.
 - **Pendientes** (`apps/pendientes`, app aparte): solo los efectos de scroll
   vertical (§3-5) en la lista de pendientes, **sin** swipe horizontal — ahí
-  no hay ninguna acción de fila que revelar. El hook `useEstiramiento` se
-  copió tal cual (es genérico, no depende de nada de esta app); el resto
-  —`overscroll-behavior`, sombra de cabecera— se repitió a mano porque cada
-  app tiene su propio `App.tsx` y `Cabecera.tsx`.
+  no hay ninguna acción de fila que revelar.
+- **Saber** (`apps/saber`, app aparte): scroll vertical completo (§3-5) más
+  la entrada escalonada (§2, sin la parte de borrado) en la lista de
+  conocimientos, tampoco con swipe horizontal.
+
+En Pendientes y Saber, el hook `useEstiramiento` se copió tal cual (es
+genérico, no depende de nada de la app de origen); el resto —`overscroll-
+behavior`, sombra de cabecera— se repitió a mano porque cada app tiene su
+propio `App.tsx` y `Cabecera.tsx`.
 
 ---
 
@@ -237,10 +242,10 @@ const useEstiramiento = (ref: RefObject<HTMLDivElement | null>, activo: boolean)
   return y
 }
 
-// en el contenedor de scroll:
-<motion.div style={{ y: estiramiento }}>
-  <Pantalla ... />
-</motion.div>
+// en el contenedor de scroll, SIN envolver <Pantalla> entera (ver §8:
+// el botón flotante que vive dentro de cada pantalla necesita quedar
+// fuera de este `motion.div`):
+<Pantalla ruta={ruta} estiramiento={estiramiento} />
 ```
 
 Puntos a no perder al replicarlo:
@@ -289,12 +294,63 @@ una decisión específica de esta lista, no parte del patrón de swipe.
 
 ---
 
-## 7. Checklist para replicarlo en otra lista
+## 7. El botón flotante se movía con el estiramiento (bug, ya arreglado)
+
+**El problema:** el `motion.div style={{ y: estiramiento }}` del §4 envolvía
+`<Pantalla ruta={...} />` entera, en `App.tsx`. Pero cada pantalla (detalle
+de lista, catálogo…) renderiza **dentro de sí misma** tanto la lista como el
+botón flotante de «Añadir» (`position: absolute`, anclado a `.marco-app` —
+ver el comentario junto a ese botón). El botón acabó **dentro** del
+`motion.div`.
+
+Cualquier elemento con `transform` distinto de `none` —aunque sea
+`translateY(0px)`, en reposo— se convierte en el **containing block** de sus
+descendientes `position: absolute`/`fixed`, sin importar cuánto se mueva ese
+transform. `framer-motion` aplica `transform: translateY(...)` en cuanto se
+liga un `motion value` al `style.y`, así que el botón dejó de anclarse a
+`.marco-app` y pasó a anclarse a ese `motion.div` — que además vive **dentro**
+del contenedor con scroll, así que el botón, que debía quedarse fijo al
+hacer scroll, empezó a moverse con el contenido y con el propio estiramiento.
+
+**La solución:** el `motion.div` del estiramiento no puede envolver nada que
+contenga un `position: absolute` anclado más arriba. Se movió el `motion.div`
+**dentro** de cada pantalla, envolviendo todo **menos** el botón flotante:
+
+```tsx
+// App.tsx: ya no envuelve <Pantalla>, solo le pasa el motion value
+<Pantalla ruta={nav.ruta} estiramiento={estiramiento} />
+
+// dentro de la propia pantalla (DetalleLista.tsx, Catalogo.tsx, ...):
+return (
+  <div>
+    <motion.div style={{ y: estiramiento }}>
+      {/* toda la lista, cabeceras de búsqueda, avisos... */}
+    </motion.div>
+
+    {/* el botón flotante, FUERA del motion.div */}
+    <button style={{ position: 'absolute', ... }}>...</button>
+  </div>
+)
+```
+
+Como el `<div>` de fuera no tiene `position` ni `transform` propios, el
+botón vuelve a encontrar `.marco-app` como su containing block, igual que
+antes de que existiera el estiramiento.
+
+Si la pantalla usaba el `<div>` de fuera para el `padding`/`flex` del
+layout (caso de `Pendientes.tsx`), ese estilo se traslada al `motion.div`
+de dentro — el `<div>` de fuera se queda sin estilo propio, solo de
+contenedor.
+
+---
+
+## 8. Checklist para replicarlo en otra lista
 
 1. Añadir `framer-motion` al `package.json` de esa app, si no está.
-2. Clonar la pantalla real, cablear una ruta y un acceso de prueba temporal
-   (ruta separada + botón en Ajustes), probar en el móvil primero.
-3. Extraer cada fila a su propio componente (necesario por el
+2. Si además lleva swipe horizontal (no todas lo necesitan): clonar la
+   pantalla real, cablear una ruta y un acceso de prueba temporal (ruta
+   separada + botón en Ajustes), probar en el móvil primero.
+3. Extraer cada fila a su propio componente si hay swipe (necesario por el
    `useMotionValue` — no puede vivir inline en el `.map()`).
 4. Swipe: `useMotionValue` + `drag="x"` + `dragConstraints` +
    `onDragEnd` con `animate()` explícito e incondicional (§1.2). No usar la
@@ -304,11 +360,15 @@ una decisión específica de esta lista, no parte del patrón de swipe.
 6. Revisar qué otros componentes miran la ruta de la pantalla clonada
    (§1.4) — paneles, cabecera, lo que sea que dependa de `nav.ruta.n`.
 7. `AnimatePresence` + `layout` + `key` estable + `height: 'auto'` para la
-   animación de borrado/entrada (§2).
+   animación de borrado/entrada (§2) — vale también solo para la entrada,
+   sin borrado (caso de Conocimientos en Saber).
 8. `overscroll-behavior-y: contain` en el contenedor de scroll (§3).
-9. El hook `useEstiramiento` es genérico — se puede mover a un archivo
-   compartido y reusar tal cual, pasándole el `ref` del contenedor de
-   scroll de la nueva pantalla (§4).
+9. El hook `useEstiramiento` es genérico — se copia tal cual a la nueva
+   app y se le pasa el `ref` del contenedor de scroll de la pantalla nueva
+   (§4). **No** envolver `<Pantalla>` entera con el `motion.div` del
+   estiramiento — pasar el `motion value` como prop hasta la pantalla en
+   cuestión, y que sea ELLA quien envuelva su contenido sin el botón
+   flotante (§7). Es el paso que más fácil se olvida.
 10. Sombra de cabecera: mismo patrón de `onScroll` + prop `elevada` (§5).
 11. Cuando quede bien: fundir el clon en la pantalla real, borrar la ruta y
     el acceso de prueba, y quitar los condicionales de ruta que ya no hagan

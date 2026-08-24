@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
-import { animate, motion, useMotionValue } from 'framer-motion'
+import { animate, useMotionValue, type MotionValue } from 'framer-motion'
 import { useApp } from './estado/AppProvider'
 import { lista, articulo, supermercado } from './estado/consultas'
 import type { Ruta } from './estado/rutas'
@@ -102,9 +102,7 @@ export const App = () => {
                   ...(conGestos ? { overscrollBehaviorY: 'contain' as const } : null),
                 }}
               >
-                <motion.div style={{ y: estiramiento }}>
-                  <Pantalla ruta={nav.ruta} />
-                </motion.div>
+                <Pantalla ruta={nav.ruta} estiramiento={estiramiento} />
               </div>
               <BarraPestanas />
             </div>
@@ -184,18 +182,35 @@ const useEstiramiento = (ref: RefObject<HTMLDivElement | null>, activo: boolean)
   return y
 }
 
-const Pantalla = ({ ruta }: { ruta: Ruta }) => {
+/**
+ * `estiramiento` solo lo usan las dos pantallas con `conGestos` (ver
+ * `App.tsx`): cada una lo aplica a un `motion.div` que envuelve **su propio
+ * contenido con scroll, sin el botón flotante**. No se envuelve aquí, a
+ * este nivel, porque el botón flotante vive dentro de lo que devuelve cada
+ * pantalla —mezclado con la lista—, y un `transform` en un antecesor común
+ * se convertiría en el «containing block» del botón (`position: absolute`)
+ * en vez de `.marco-app`, moviéndolo con el estiramiento y rompiendo que se
+ * quede fijo al hacer scroll. Ver `docs/gestos-lista-swipe.md` §8 (fix del
+ * botón flotante).
+ */
+const Pantalla = ({
+  ruta,
+  estiramiento,
+}: {
+  ruta: Ruta
+  estiramiento: MotionValue<number>
+}) => {
   switch (ruta.n) {
     case 'inicio':
       return <Inicio />
     case 'listas':
       return <Listas />
     case 'lista':
-      return <DetalleLista listaId={ruta.id} />
+      return <DetalleLista listaId={ruta.id} estiramiento={estiramiento} />
     case 'dictar':
       return <Dictar listaId={ruta.id} />
     case 'articulos':
-      return <Catalogo />
+      return <Catalogo estiramiento={estiramiento} />
     case 'ficha':
       return <Ficha artId={ruta.id} />
     case 'ronda':

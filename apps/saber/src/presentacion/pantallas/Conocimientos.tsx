@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion, type MotionValue } from 'framer-motion'
 import { useApp } from '../estado/AppProvider'
 import { textoError } from '../componentes/Aviso'
 import { Aviso } from '../componentes/Aviso'
@@ -18,7 +19,7 @@ const ESPERA_BUSQUEDA_MS = 300
  * falta pintar, no el catálogo entero. El texto lleva una pequeña espera para
  * no lanzar una consulta por cada letra.
  */
-export const Conocimientos = () => {
+export const Conocimientos = ({ estiramiento }: { estiramiento: MotionValue<number> }) => {
   const {
     casos,
     datos,
@@ -68,6 +69,14 @@ export const Conocimientos = () => {
 
   return (
     <div>
+      {/*
+        El estiramiento va en un `motion.div` que envuelve TODO menos el
+        botón flotante de abajo: si el botón quedara dentro, el `transform`
+        de este `div` se convertiría en su «containing block» (es
+        `position: absolute`) y se movería con el estiramiento en vez de
+        quedarse fijo. Ver `../../compra/docs/gestos-lista-swipe.md` §8.
+      */}
+      <motion.div style={{ y: estiramiento }}>
       <div
         style={{
           padding: '12px 14px',
@@ -126,42 +135,54 @@ export const Conocimientos = () => {
         </div>
       )}
 
-      {filtrados.map((c) => (
-        <button
-          key={c.id}
-          onClick={() => nav.ir({ n: 'ficha', id: c.id })}
-          style={{
-            width: '100%',
-            textAlign: 'left',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 14px',
-            minHeight: 64,
-            borderBottom: '1px solid var(--color-divider)',
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="tag tag-accent">{c.tema}</span>
-              {c.enlace && <IconoEnlace size={13} color="var(--color-neutral-600)" />}
-            </div>
-            <div className="elipsis" style={{ fontSize: 17, marginTop: 2 }}>
-              {c.titulo}
-            </div>
-          </div>
-          <span
-            className="cifra"
-            style={{ fontSize: 11, color: 'var(--color-neutral-600)', flex: 'none' }}
+      <AnimatePresence>
+        {filtrados.map((c, indice) => (
+          <motion.button
+            key={c.id}
+            layout
+            initial={{ opacity: 0, height: 0 }}
+            animate={{
+              opacity: 1,
+              height: 'auto',
+              transition: { delay: indice * 0.035, type: 'spring', stiffness: 500, damping: 40 },
+            }}
+            exit={{ opacity: 0, height: 0, transition: { duration: 0.18 } }}
+            onClick={() => nav.ir({ n: 'ficha', id: c.id })}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 14px',
+              minHeight: 64,
+              overflow: 'hidden',
+              borderBottom: '1px solid var(--color-divider)',
+            }}
           >
-            {cuandoSeCreo(c.creado, hoy)}
-          </span>
-          <IconoAvanzar size={16} color="var(--color-neutral-500)" />
-        </button>
-      ))}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="tag tag-accent">{c.tema}</span>
+                {c.enlace && <IconoEnlace size={13} color="var(--color-neutral-600)" />}
+              </div>
+              <div className="elipsis" style={{ fontSize: 17, marginTop: 2 }}>
+                {c.titulo}
+              </div>
+            </div>
+            <span
+              className="cifra"
+              style={{ fontSize: 11, color: 'var(--color-neutral-600)', flex: 'none' }}
+            >
+              {cuandoSeCreo(c.creado, hoy)}
+            </span>
+            <IconoAvanzar size={16} color="var(--color-neutral-500)" />
+          </motion.button>
+        ))}
+      </AnimatePresence>
 
       {/* Hueco al pie para que la última fila no quede bajo el botón flotante. */}
       <div style={{ height: 86 }} />
+      </motion.div>
 
       {/*
         El botón de apuntar vivía al pie de la lista, y con la búsqueda a lo

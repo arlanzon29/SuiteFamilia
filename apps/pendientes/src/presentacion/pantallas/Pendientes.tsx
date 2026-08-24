@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, type MotionValue } from 'framer-motion'
 import { useApp } from '../estado/AppProvider'
 import { listaMasAdelante, listaPorHacer, listaTodoPorHacer } from '../estado/consultas'
 import { Aviso } from '../componentes/Aviso'
@@ -18,7 +19,7 @@ import { plural } from '../formato'
  * pantalla en otro momento, no otra: separarla obligaría a que algo de fuera
  * decidiera cuál pintar, y esa decisión es de aquí.
  */
-export const Pendientes = () => {
+export const Pendientes = ({ estiramiento }: { estiramiento: MotionValue<number> }) => {
   const { casos, datos, cargando, error, nav, setDlg } = useApp()
   const hoy = casos.hoy()
   const filas = listaPorHacer(datos, hoy)
@@ -101,9 +102,25 @@ export const Pendientes = () => {
   }
 
   return (
-    <div
-      style={{ padding: '14px 14px 26px', display: 'flex', flexDirection: 'column', gap: 10 }}
-    >
+    <div>
+      {/*
+        El estiramiento va en un `motion.div` que envuelve TODO menos el
+        botón flotante de abajo: si el botón quedara dentro, el `transform`
+        de este `div` se convertiría en su «containing block» (es
+        `position: absolute`) y se movería con el estiramiento en vez de
+        quedarse fijo. Ver `../compra/docs/gestos-lista-swipe.md` §8. Por
+        eso el padding y el `flex column` que antes llevaba el `<div>` de
+        fuera viven ahora aquí.
+      */}
+      <motion.div
+        style={{
+          y: estiramiento,
+          padding: '14px 14px 26px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
       {error && <Aviso>{error}</Aviso>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -184,6 +201,7 @@ export const Pendientes = () => {
             ))}
         </div>
       )}
+      </motion.div>
 
       {/*
         El botón de apuntar vivía al pie de la lista, y esta lista solo crece

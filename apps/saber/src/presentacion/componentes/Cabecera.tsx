@@ -18,7 +18,21 @@ const appInstalada = () =>
   !/iPad|iPhone|iPod/.test(window.navigator.userAgent)
 
 /** Cabecera con kicker + título, flecha atrás cuando hay pila y conmutador de tema. */
-export const Cabecera = ({ kicker, titulo }: { kicker: string; titulo: string }) => {
+export const Cabecera = ({
+  kicker,
+  titulo,
+  elevada,
+}: {
+  kicker: string
+  titulo: string
+  /**
+   * Sombra bajo la cabecera cuando el contenido se ha desplazado hacia
+   * arriba, como el `AppBarLayout` de Android. La activa `App.tsx` según la
+   * ruta. Mismo patrón que en la app de compra —ver
+   * `../../compra/docs/gestos-lista-swipe.md` §5.
+   */
+  elevada?: boolean
+}) => {
   const { nav, tema } = useApp()
   const hayAtras = tienePila(nav.ruta)
 
@@ -31,6 +45,10 @@ export const Cabecera = ({ kicker, titulo }: { kicker: string; titulo: string })
         padding: '14px 14px 12px',
         borderBottom: '1px solid var(--color-divider)',
         flex: 'none',
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: elevada ? 'var(--shadow-sm)' : 'none',
+        transition: 'box-shadow 0.15s ease-out',
       }}
     >
       {hayAtras && (

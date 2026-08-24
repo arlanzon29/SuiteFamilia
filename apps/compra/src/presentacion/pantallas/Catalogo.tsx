@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
-import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
+import {
+  animate,
+  motion,
+  useMotionValue,
+  type MotionValue,
+  type PanInfo,
+} from 'framer-motion'
 import type { Articulo } from '../../dominio/modelo'
 import type { Precio } from '../../dominio/modelo'
 import { useApp } from '../estado/AppProvider'
@@ -27,7 +33,7 @@ import { IconoFavorito, IconoLapiz, IconoMas } from '../iconos'
  * columna fija de 48px con el texto «Ed»; con el swipe, esos 48px vuelven a
  * la fila y el botón solo aparece cuando se busca.
  */
-export const Catalogo = () => {
+export const Catalogo = ({ estiramiento }: { estiramiento: MotionValue<number> }) => {
   const { datos, nav, q, setQ, soloFav, setDlg, setVisor, imagenes } = useApp()
 
   const favoritos = cuentaFavoritos(datos)
@@ -43,6 +49,14 @@ export const Catalogo = () => {
 
   return (
     <div>
+      {/*
+        El estiramiento va en un `motion.div` que envuelve TODO menos el
+        botón flotante de abajo: si el botón quedara dentro, el `transform`
+        de este `div` se convertiría en su «containing block» (es
+        `position: absolute`) y se movería con el estiramiento en vez de
+        quedarse fijo. Ver `docs/gestos-lista-swipe.md` §8.
+      */}
+      <motion.div style={{ y: estiramiento }}>
       <div
         style={{
           padding: '12px 14px',
@@ -124,6 +138,7 @@ export const Catalogo = () => {
       {/* Hueco al pie: sin él, la última fila queda pegada a la barra de
           pestañas. */}
       <div style={{ height: 16 }} />
+      </motion.div>
 
       {/*
         El botón de crear vivía al pie de la lista, y la lista solo crece: con

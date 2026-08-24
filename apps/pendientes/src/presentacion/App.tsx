@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
-import { animate, motion, useMotionValue } from 'framer-motion'
+import { animate, useMotionValue, type MotionValue } from 'framer-motion'
 import { useApp } from './estado/AppProvider'
 import { pendiente } from './estado/consultas'
 import type { Ruta } from './estado/rutas'
@@ -98,9 +98,7 @@ export const App = () => {
                   ...(conGestos ? { overscrollBehaviorY: 'contain' as const } : null),
                 }}
               >
-                <motion.div style={{ y: estiramiento }}>
-                  <Pantalla ruta={nav.ruta} />
-                </motion.div>
+                <Pantalla ruta={nav.ruta} estiramiento={estiramiento} />
               </div>
               <BarraPestanas />
             </div>
@@ -179,12 +177,18 @@ const useEstiramiento = (ref: RefObject<HTMLDivElement | null>, activo: boolean)
   return y
 }
 
-const Pantalla = ({ ruta }: { ruta: Ruta }) => {
+/**
+ * `estiramiento` solo lo usa `Pendientes`, la única pantalla con
+ * `conGestos`. Se aplica dentro de ella, envolviendo el contenido con
+ * scroll **sin el botón flotante** — ver el mismo razonamiento en
+ * `../compra/docs/gestos-lista-swipe.md` §8.
+ */
+const Pantalla = ({ ruta, estiramiento }: { ruta: Ruta; estiramiento: MotionValue<number> }) => {
   switch (ruta.n) {
     case 'inicio':
       return <Inicio />
     case 'pendientes':
-      return <Pendientes />
+      return <Pendientes estiramiento={estiramiento} />
     case 'hechos':
       return <Hechos />
     case 'ficha':
