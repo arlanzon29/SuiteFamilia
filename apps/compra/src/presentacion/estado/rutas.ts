@@ -10,6 +10,12 @@ export type Ruta =
   | { n: 'ficha'; id: string }
   | { n: 'dictar'; id: string }
   | { n: 'ronda'; superId: string; ids: string[]; origen: string }
+  /**
+   * Copia de recreo de `lista`: sandbox para probar gestos (swipe) sin tocar
+   * la pantalla real. Vive solo mientras dure la exploración; ver
+   * `DetalleListaPrueba.tsx`.
+   */
+  | { n: 'listaPrueba'; id: string }
 
 /** Pantallas raíz: son las cuatro pestañas de la barra inferior. */
 export type Pestana = 'inicio' | 'listas' | 'articulos' | 'ajustes'
@@ -18,6 +24,7 @@ export type Pestana = 'inicio' | 'listas' | 'articulos' | 'ajustes'
 export const pestanaDe = (r: Ruta): Pestana => {
   switch (r.n) {
     case 'lista':
+    case 'listaPrueba':
     case 'ronda':
     case 'dictar':
     case 'listas':
@@ -34,7 +41,11 @@ export const pestanaDe = (r: Ruta): Pestana => {
 
 /** Rutas que se apilan y por tanto muestran el botón de atrás. */
 export const tienePila = (r: Ruta): boolean =>
-  r.n === 'lista' || r.n === 'ficha' || r.n === 'ronda' || r.n === 'dictar'
+  r.n === 'lista' ||
+  r.n === 'listaPrueba' ||
+  r.n === 'ficha' ||
+  r.n === 'ronda' ||
+  r.n === 'dictar'
 
 export type Dialogo =
   | { tipo: 'nuevaLista' }

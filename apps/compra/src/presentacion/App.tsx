@@ -13,6 +13,7 @@ import { Login } from './pantallas/Login'
 import { Inicio } from './pantallas/Inicio'
 import { Listas } from './pantallas/Listas'
 import { DetalleLista } from './pantallas/DetalleLista'
+import { DetalleListaPrueba } from './pantallas/DetalleListaPrueba'
 import { Dictar } from './pantallas/Dictar'
 import { Catalogo } from './pantallas/Catalogo'
 import { Ficha } from './pantallas/Ficha'
@@ -100,6 +101,8 @@ const Pantalla = ({ ruta }: { ruta: Ruta }) => {
       return <Listas />
     case 'lista':
       return <DetalleLista listaId={ruta.id} />
+    case 'listaPrueba':
+      return <DetalleListaPrueba listaId={ruta.id} />
     case 'dictar':
       return <Dictar listaId={ruta.id} />
     case 'articulos':
@@ -125,6 +128,8 @@ const tituloDe = (ruta: Ruta, datos: Instantanea): { kicker: string; titulo: str
       return { kicker: 'Casa', titulo: 'Ajustes' }
     case 'lista':
       return { kicker: 'Lista', titulo: lista(datos, ruta.id)?.nombre ?? '' }
+    case 'listaPrueba':
+      return { kicker: 'Prueba', titulo: lista(datos, ruta.id)?.nombre ?? '' }
     case 'ficha':
       return { kicker: 'Artículo', titulo: articulo(datos, ruta.id)?.nombre ?? '' }
     case 'dictar':
