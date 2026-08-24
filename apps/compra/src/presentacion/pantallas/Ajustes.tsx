@@ -18,7 +18,6 @@ export const Ajustes = () => {
     sim,
     setSim,
     setDlg,
-    nav,
   } = useApp()
   const [nueva, setNueva] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -197,24 +196,6 @@ export const Ajustes = () => {
             </button>
           ))}
         </div>
-      </section>
-
-      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div className="kicker-neutral">Pruebas</div>
-        <p style={{ margin: 0, fontSize: 12, color: 'var(--color-neutral-600)' }}>
-          Copia de recreo del detalle de lista, para probar gestos sin tocar la pantalla real.
-        </p>
-        <button
-          className="btn btn-secondary"
-          style={{ minHeight: 46 }}
-          disabled={datos.listas.filter((l) => !l.cerrada).length === 0}
-          onClick={() => {
-            const primera = datos.listas.find((l) => !l.cerrada)
-            if (primera) nav.ir({ n: 'listaPrueba', id: primera.id })
-          }}
-        >
-          Abrir lista de prueba (swipe)
-        </button>
       </section>
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

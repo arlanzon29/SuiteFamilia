@@ -30,9 +30,9 @@ export const Cabecera = ({
   kicker: string
   titulo: string
   /**
-   * PRUEBA: sombra bajo la cabecera cuando el contenido se ha desplazado
-   * hacia arriba, como el `AppBarLayout` de Android — hoy solo se activa
-   * desde `App.tsx` para la ruta `listaPrueba`.
+   * Sombra bajo la cabecera cuando el contenido se ha desplazado hacia
+   * arriba, como el `AppBarLayout` de Android. La activa `App.tsx` según la
+   * ruta; ver `docs/gestos-lista-swipe.md`.
    */
   elevada?: boolean
 }) => {

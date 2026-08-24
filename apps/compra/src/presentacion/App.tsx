@@ -15,7 +15,6 @@ import { Login } from './pantallas/Login'
 import { Inicio } from './pantallas/Inicio'
 import { Listas } from './pantallas/Listas'
 import { DetalleLista } from './pantallas/DetalleLista'
-import { DetalleListaPrueba } from './pantallas/DetalleListaPrueba'
 import { Dictar } from './pantallas/Dictar'
 import { Catalogo } from './pantallas/Catalogo'
 import { Ficha } from './pantallas/Ficha'
@@ -33,12 +32,14 @@ export const App = () => {
   const { sesion, comprobandoSesion, nav, datos, imagenes, panelAnadir } = useApp()
   const { hayNueva } = useVersionNueva()
 
-  // PRUEBA, solo listaPrueba: sombra bajo la cabecera en cuanto el contenido
-  // se ha desplazado, como la elevación del AppBarLayout de Android.
+  // Sombra bajo la cabecera en cuanto el contenido se ha desplazado, como la
+  // elevación del AppBarLayout de Android. Solo en el detalle de lista, que
+  // es donde se pensó (ver docs/gestos-lista-swipe.md); las demás pantallas
+  // no lo llevan todavía.
   const [scrolled, setScrolled] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const enPrueba = nav.ruta.n === 'listaPrueba'
-  const estiramiento = useEstiramiento(scrollRef, enPrueba)
+  const conGestos = nav.ruta.n === 'lista'
+  const estiramiento = useEstiramiento(scrollRef, conGestos)
 
   return (
     <div
@@ -79,26 +80,26 @@ export const App = () => {
         ) : (
           <>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              <Cabecera {...tituloDe(nav.ruta, datos)} elevada={enPrueba && scrolled} />
+              <Cabecera {...tituloDe(nav.ruta, datos)} elevada={conGestos && scrolled} />
               <div
                 ref={scrollRef}
                 onScroll={(e) => {
-                  if (enPrueba) setScrolled(e.currentTarget.scrollTop > 4)
+                  if (conGestos) setScrolled(e.currentTarget.scrollTop > 4)
                 }}
                 style={{
                   flex: 1,
                   overflowY: 'auto',
                   WebkitOverflowScrolling: 'touch',
                   /*
-                    PRUEBA: solo en `listaPrueba`. En el móvil, seguir
-                    arrastrando hacia abajo con el scroll ya en el tope hace
-                    que el navegador/PWA dispare su gesto nativo de
-                    pull-to-refresh. `contain` para el scroll chaining aquí
-                    mismo, así el gesto no se propaga al documento y el
-                    navegador no lo interpreta como «refrescar». Cuando se dé
-                    por bueno se aplica siempre, sin el condicional de ruta.
+                    En el móvil, seguir arrastrando hacia abajo con el scroll
+                    ya en el tope hace que el navegador/PWA dispare su gesto
+                    nativo de pull-to-refresh. `contain` para el scroll
+                    chaining aquí mismo, así el gesto no se propaga al
+                    documento y el navegador no lo interpreta como
+                    «refrescar». Solo en el detalle de lista, igual que el
+                    resto de los efectos de esta pantalla.
                   */
-                  ...(enPrueba ? { overscrollBehaviorY: 'contain' as const } : null),
+                  ...(conGestos ? { overscrollBehaviorY: 'contain' as const } : null),
                 }}
               >
                 <motion.div style={{ y: estiramiento }}>
@@ -121,14 +122,15 @@ export const App = () => {
 const MUELLE_ESTIRAMIENTO = { type: 'spring', stiffness: 400, damping: 32 } as const
 
 /**
- * PRUEBA: estira el contenido con resistencia al arrastrar más allá del
- * principio o el final de la lista, como el overscroll de Android 12+, en
- * vez de parar en seco. Solo activo cuando `activo` es true (hoy, la ruta
- * `listaPrueba`), y solo entra en juego en el borde exacto del scroll —el
- * resto del gesto lo sigue llevando el scroll nativo del navegador.
+ * Estira el contenido con resistencia al arrastrar más allá del principio o
+ * el final de la lista, como el overscroll de Android 12+, en vez de parar
+ * en seco. Solo entra en juego en el borde exacto del scroll —el resto del
+ * gesto lo sigue llevando el scroll nativo del navegador— y solo cuando
+ * `activo` es true.
  *
  * La resistencia usa raíz cuadrada del desplazamiento: cuanto más se tira,
  * más cuesta seguir estirando, en vez de una regla de proporción fija.
+ * Detalle completo en `docs/gestos-lista-swipe.md`.
  */
 const useEstiramiento = (ref: RefObject<HTMLDivElement | null>, activo: boolean) => {
   const y = useMotionValue(0)
@@ -190,8 +192,6 @@ const Pantalla = ({ ruta }: { ruta: Ruta }) => {
       return <Listas />
     case 'lista':
       return <DetalleLista listaId={ruta.id} />
-    case 'listaPrueba':
-      return <DetalleListaPrueba listaId={ruta.id} />
     case 'dictar':
       return <Dictar listaId={ruta.id} />
     case 'articulos':
@@ -217,8 +217,6 @@ const tituloDe = (ruta: Ruta, datos: Instantanea): { kicker: string; titulo: str
       return { kicker: 'Casa', titulo: 'Ajustes' }
     case 'lista':
       return { kicker: 'Lista', titulo: lista(datos, ruta.id)?.nombre ?? '' }
-    case 'listaPrueba':
-      return { kicker: 'Prueba', titulo: lista(datos, ruta.id)?.nombre ?? '' }
     case 'ficha':
       return { kicker: 'Artículo', titulo: articulo(datos, ruta.id)?.nombre ?? '' }
     case 'dictar':

@@ -18,10 +18,7 @@ export const PanelAnadir = () => {
   const { datos, acciones, nav, q, setQ, soloFav, setPanelAnadir, setDlg } = useApp()
   const [error, setError] = useState<string | null>(null)
 
-  // `listaPrueba` es el clon sandbox de `lista` (ver DetalleListaPrueba.tsx):
-  // mismo panel de añadir, misma lista real detrás del id.
-  const listaId =
-    nav.ruta.n === 'lista' || nav.ruta.n === 'listaPrueba' ? nav.ruta.id : null
+  const listaId = nav.ruta.n === 'lista' ? nav.ruta.id : null
   const actual = listaId ? lista(datos, listaId) : undefined
   if (!listaId || !actual) return null
 
