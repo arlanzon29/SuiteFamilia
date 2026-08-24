@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react'
+import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
+import type { Articulo } from '../../dominio/modelo'
+import type { Precio } from '../../dominio/modelo'
 import { useApp } from '../estado/AppProvider'
 import { buscaArticulos, cuentaFavoritos, mejor } from '../estado/consultas'
 import { eur } from '../formato'
 import { Miniatura } from '../componentes/Miniatura'
 import { FiltroFavoritos } from '../componentes/Favorito'
-import { IconoFavorito, IconoMas } from '../iconos'
+import { IconoFavorito, IconoLapiz, IconoMas } from '../iconos'
 
 /**
  * El catálogo: artículos genéricos y el mejor precio conocido. Desde aquí se
@@ -14,6 +18,14 @@ import { IconoFavorito, IconoMas } from '../iconos'
  * quien la necesita la ve en la ficha o al apuntar un precio. Lo mismo con el
  * favorito: no es una columna, es una estrellita junto al nombre —marcarlo se
  * hace desde «Editar», no desde la fila.
+ *
+ * Editar es deslizar la fila hacia la izquierda: revela un lápiz, mismo
+ * gesto que «Eliminar» en el detalle de lista (ver
+ * `docs/gestos-lista-swipe.md` para el porqué de cada pieza —el
+ * `useMotionValue` propio, el `animate()` incondicional, el `position:
+ * relative` para que el botón de detrás quede tapado—). Antes era una
+ * columna fija de 48px con el texto «Ed»; con el swipe, esos 48px vuelven a
+ * la fila y el botón solo aparece cuando se busca.
  */
 export const Catalogo = () => {
   const { datos, nav, q, setQ, soloFav, setDlg, setVisor, imagenes } = useApp()
@@ -24,6 +36,10 @@ export const Catalogo = () => {
   // puesto no: lo que falta no es el artículo, es la estrella.
   const sinResultados = q.trim().length > 0 && filtrados.length === 0 && !soloFav
   const sinFavoritos = soloFav && filtrados.length === 0
+
+  // Qué fila tiene el lápiz revelado. Solo una a la vez: abrir otra cierra
+  // la anterior, como en el detalle de lista.
+  const [abierto, setAbierto] = useState<string | null>(null)
 
   return (
     <div>
@@ -88,95 +104,22 @@ export const Catalogo = () => {
         </div>
       )}
 
-      {filtrados.map((a) => {
-        const m = mejor(datos, a.id)
-        const foto = imagenes.foto(a.id)
-        return (
-          <div
-            key={a.id}
-            style={{
-              display: 'flex',
-              alignItems: 'stretch',
-              borderBottom: '1px solid var(--color-divider)',
-            }}
-          >
-            {/*
-              La foto sale del botón de la fila y va en uno propio.
-
-              No es capricho de maquetación: un botón dentro de otro no es HTML
-              válido, y la fila entera **es** el botón que lleva a la ficha. Para
-              que tocar la foto haga otra cosa —ampliarla— tiene que ser hermana
-              suya, no hija.
-
-              Solo cuando hay foto. El recuadro con la inicial no se amplía
-              —no hay nada que leer en una letra—, así que ese se queda dentro
-              de la fila y sigue llevando a la ficha como hasta ahora.
-            */}
-            {foto && (
-              <button
-                onClick={() => setVisor({ artId: a.id })}
-                aria-label={`Ver la foto de ${a.nombre}`}
-                style={{
-                  flex: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '0 0 0 14px',
-                }}
-              >
-                <Miniatura src={foto} nombre={a.nombre} tamano={40} />
-              </button>
-            )}
-            <button
-              onClick={() => nav.ir({ n: 'ficha', id: a.id })}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                // Con foto, el hueco de la izquierda ya lo pone su botón; sin
-                // ella, este padding es el de siempre y la fila no se mueve.
-                padding: foto ? '0 8px 0 10px' : '0 8px 0 14px',
-                minHeight: 60,
-                textAlign: 'left',
-              }}
-            >
-              {!foto && <Miniatura nombre={a.nombre} tamano={40} />}
-              {a.favorito && (
-                <IconoFavorito size={14} relleno color="var(--color-accent)" />
-              )}
-              <span className="elipsis" style={{ flex: 1, fontSize: 17 }}>
-                {a.nombre}
-              </span>
-              <span
-                className="cifra"
-                style={{
-                  fontSize: 12,
-                  color: 'var(--color-neutral-600)',
-                  width: 74,
-                  textAlign: 'right',
-                }}
-              >
-                {m ? eur(m.importe) : 'sin precio'}
-              </span>
-            </button>
-            <button
-              onClick={() => setDlg({ tipo: 'editArt', id: a.id })}
-              aria-label={`Editar ${a.nombre}`}
-              style={{
-                width: 48,
-                flex: 'none',
-                fontSize: 13,
-                color: 'var(--color-accent)',
-                borderLeft: '1px solid var(--color-divider)',
-                fontFamily: 'var(--font-heading)',
-              }}
-            >
-              Ed
-            </button>
-          </div>
-        )
-      })}
+      {filtrados.map((a) => (
+        <FilaCatalogo
+          key={a.id}
+          a={a}
+          m={mejor(datos, a.id)}
+          foto={imagenes.foto(a.id)}
+          abierta={abierto === a.id}
+          onAbrir={(id) => setAbierto(id)}
+          onVerFoto={() => setVisor({ artId: a.id })}
+          onVerFicha={() => nav.ir({ n: 'ficha', id: a.id })}
+          onEditar={() => {
+            setAbierto(null)
+            setDlg({ tipo: 'editArt', id: a.id })
+          }}
+        />
+      ))}
 
       {/* Hueco al pie: sin él, la última fila queda pegada a la barra de
           pestañas. */}
@@ -217,6 +160,145 @@ export const Catalogo = () => {
       >
         <IconoMas size={26} />
       </button>
+    </div>
+  )
+}
+
+/** Mismo muelle que el swipe del detalle de lista: mismo tacto en toda la app. */
+const MUELLE = { type: 'spring', stiffness: 500, damping: 40 } as const
+
+const FilaCatalogo = ({
+  a,
+  m,
+  foto,
+  abierta,
+  onAbrir,
+  onVerFoto,
+  onVerFicha,
+  onEditar,
+}: {
+  a: Articulo
+  m: Precio | null
+  foto: string | undefined
+  abierta: boolean
+  onAbrir: (id: string | null) => void
+  onVerFoto: () => void
+  onVerFicha: () => void
+  onEditar: () => void
+}) => {
+  const x = useMotionValue(0)
+
+  // Otra fila se ha abierto: si esta ya no es la abierta, vuelve a su sitio.
+  useEffect(() => {
+    if (!abierta) animate(x, 0, MUELLE)
+  }, [abierta, x])
+
+  const onDragEnd = (_e: unknown, info: PanInfo) => {
+    // Umbral a mitad del botón (48px de ancho), o gesto rápido aunque corto.
+    const abrir = info.offset.x < -24 || info.velocity.x < -400
+    animate(x, abrir ? -48 : 0, MUELLE)
+    onAbrir(abrir ? a.id : null)
+  }
+
+  return (
+    <div style={{ position: 'relative', overflow: 'hidden' }}>
+      <button
+        onClick={onEditar}
+        aria-label={`Editar ${a.nombre}`}
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: 48,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--color-accent)',
+          color: '#fff',
+        }}
+      >
+        <IconoLapiz size={18} />
+      </button>
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -48, right: 0 }}
+        dragElastic={0.06}
+        dragMomentum={false}
+        onDragEnd={onDragEnd}
+        style={{
+          x,
+          // Mismo motivo que en el detalle de lista: `position: relative`
+          // (sin z-index) mete la fila en la misma capa de apilamiento que
+          // el botón de abajo, así pinta después de él y lo tapa mientras
+          // está cerrada.
+          position: 'relative',
+          touchAction: 'pan-y',
+          background: 'var(--color-bg)',
+          display: 'flex',
+          alignItems: 'stretch',
+          borderBottom: '1px solid var(--color-divider)',
+        }}
+      >
+        {/*
+          La foto sale del botón de la fila y va en uno propio.
+
+          No es capricho de maquetación: un botón dentro de otro no es HTML
+          válido, y la fila entera **es** el botón que lleva a la ficha. Para
+          que tocar la foto haga otra cosa —ampliarla— tiene que ser hermana
+          suya, no hija.
+
+          Solo cuando hay foto. El recuadro con la inicial no se amplía
+          —no hay nada que leer en una letra—, así que ese se queda dentro
+          de la fila y sigue llevando a la ficha como hasta ahora.
+        */}
+        {foto && (
+          <button
+            onClick={onVerFoto}
+            aria-label={`Ver la foto de ${a.nombre}`}
+            style={{
+              flex: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 0 0 14px',
+            }}
+          >
+            <Miniatura src={foto} nombre={a.nombre} tamano={40} />
+          </button>
+        )}
+        <button
+          onClick={onVerFicha}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            // Con foto, el hueco de la izquierda ya lo pone su botón; sin
+            // ella, este padding es el de siempre y la fila no se mueve.
+            padding: foto ? '0 8px 0 10px' : '0 8px 0 14px',
+            minHeight: 60,
+            textAlign: 'left',
+          }}
+        >
+          {!foto && <Miniatura nombre={a.nombre} tamano={40} />}
+          {a.favorito && <IconoFavorito size={14} relleno color="var(--color-accent)" />}
+          <span className="elipsis" style={{ flex: 1, fontSize: 17 }}>
+            {a.nombre}
+          </span>
+          <span
+            className="cifra"
+            style={{
+              fontSize: 12,
+              color: 'var(--color-neutral-600)',
+              width: 74,
+              textAlign: 'right',
+            }}
+          >
+            {m ? eur(m.importe) : 'sin precio'}
+          </span>
+        </button>
+      </motion.div>
     </div>
   )
 }
