@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type Tema = 'light' | 'dark'
 
-const CLAVE = 'pendientes.tema'
+const CLAVE = 'suitefamilia.tema'
 
 const guardado = (): Tema => {
   try {
@@ -17,9 +17,9 @@ const guardado = (): Tema => {
  * El tema se aplica en `<html data-theme>`, que es donde el sistema visual
  * redefine sus tokens. Se recuerda entre sesiones.
  *
- * La clave es propia de esta aplicación y no compartida con la compra: las dos
- * viven en el mismo origen de GitHub Pages, así que una clave común haría que
- * cambiar el tema en una lo cambiara en la otra sin avisar.
+ * La clave es compartida por todas las apps de la Suite: viven en el mismo
+ * origen de GitHub Pages y el modo día/noche es una preferencia de la casa,
+ * no de cada app por separado.
  */
 export const useTema = () => {
   const [tema, setTema] = useState<Tema>(guardado)
