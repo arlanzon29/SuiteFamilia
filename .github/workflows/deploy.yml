@@ -94,6 +94,17 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+      # Saber: mismos secretos, mismo motivo — entra con la misma cuenta y lee
+      # las tablas temas y conocimientos, del mismo proyecto de Supabase.
+      - run: npm ci
+        working-directory: apps/saber
+
+      - run: npm run build
+        working-directory: apps/saber
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
