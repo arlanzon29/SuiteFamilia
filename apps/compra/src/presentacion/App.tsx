@@ -76,6 +76,18 @@ export const App = () => {
                   flex: 1,
                   overflowY: 'auto',
                   WebkitOverflowScrolling: 'touch',
+                  /*
+                    PRUEBA: solo en `listaPrueba`. En el móvil, seguir
+                    arrastrando hacia abajo con el scroll ya en el tope hace
+                    que el navegador/PWA dispare su gesto nativo de
+                    pull-to-refresh. `contain` para el scroll chaining aquí
+                    mismo, así el gesto no se propaga al documento y el
+                    navegador no lo interpreta como «refrescar». Cuando se dé
+                    por bueno se aplica siempre, sin el condicional de ruta.
+                  */
+                  ...(nav.ruta.n === 'listaPrueba'
+                    ? { overscrollBehaviorY: 'contain' as const }
+                    : null),
                 }}
               >
                 <Pantalla ruta={nav.ruta} />
