@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
+import { AnimatePresence, animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
 import { ordenDeCompra, pendientes } from '../../dominio/modelo'
 import type { Articulo, ItemLista, Precio, Supermercado } from '../../dominio/modelo'
 import { useApp } from '../estado/AppProvider'
@@ -8,7 +8,7 @@ import { MOSTRAR_TOTAL_LISTA } from '../config'
 import { eur } from '../formato'
 import { Miniatura } from '../componentes/Miniatura'
 import { Aviso, textoError } from '../componentes/Aviso'
-import { IconoAvanzar, IconoBorrar, IconoMas, IconoMenos } from '../iconos'
+import { IconoAvanzar, IconoBorrar, IconoMas } from '../iconos'
 
 /**
  * Copia de recreo de `DetalleLista.tsx`, sin más diferencia por ahora.
@@ -143,42 +143,41 @@ export const DetalleListaPrueba = ({ listaId }: { listaId: string }) => {
       {items.length > 0 && (
         <>
           <div style={{ padding: '6px 0 12px' }}>
-            {items.map((it) => {
-              const a = articulo(datos, it.artId)
-              if (!a) return null
-              const m = mejor(datos, it.artId)
-              const tienda = m ? supermercado(datos, m.superId) : undefined
+            <AnimatePresence>
+              {items.map((it, indice) => {
+                const a = articulo(datos, it.artId)
+                if (!a) return null
+                const m = mejor(datos, it.artId)
+                const tienda = m ? supermercado(datos, m.superId) : undefined
 
-              return (
-                <FilaArticulo
-                  key={it.artId}
-                  it={it}
-                  a={a}
-                  m={m}
-                  tienda={tienda}
-                  bloqueada={bloqueada}
-                  foto={imagenes.foto(a.id)}
-                  abierta={abierto === it.artId}
-                  onAbrir={(id) => setAbierto(id)}
-                  onVerFoto={() => setVisor({ artId: a.id })}
-                  onAlternar={() =>
-                    intenta(it.artId, () => acciones.marcarComprado(actual.id, it.artId, !it.comprado))
-                  }
-                  onMas={() =>
-                    intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, it.cant + 1))
-                  }
-                  onMenos={() =>
-                    intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, it.cant - 1))
-                  }
-                  onEliminar={() => {
-                    setAbierto(null)
-                    intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, 0))
-                  }}
-                  onVerFicha={() => nav.ir({ n: 'ficha', id: it.artId })}
-                  fallo={fallo?.clave === it.artId ? fallo.texto : undefined}
-                />
-              )
-            })}
+                return (
+                  <FilaArticulo
+                    key={it.artId}
+                    indice={indice}
+                    it={it}
+                    a={a}
+                    m={m}
+                    tienda={tienda}
+                    bloqueada={bloqueada}
+                    foto={imagenes.foto(a.id)}
+                    abierta={abierto === it.artId}
+                    onAbrir={(id) => setAbierto(id)}
+                    onVerFoto={() => setVisor({ artId: a.id })}
+                    onAlternar={() =>
+                      intenta(it.artId, () =>
+                        acciones.marcarComprado(actual.id, it.artId, !it.comprado),
+                      )
+                    }
+                    onEliminar={() => {
+                      setAbierto(null)
+                      intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, 0))
+                    }}
+                    onVerFicha={() => nav.ir({ n: 'ficha', id: it.artId })}
+                    fallo={fallo?.clave === it.artId ? fallo.texto : undefined}
+                  />
+                )
+              })}
+            </AnimatePresence>
           </div>
 
           <div
@@ -273,6 +272,7 @@ const MUELLE = { type: 'spring', stiffness: 500, damping: 40 } as const
  * se dispara siempre, sin depender de que el estado cambie.
  */
 const FilaArticulo = ({
+  indice,
   it,
   a,
   m,
@@ -283,12 +283,11 @@ const FilaArticulo = ({
   onAbrir,
   onVerFoto,
   onAlternar,
-  onMas,
-  onMenos,
   onEliminar,
   onVerFicha,
   fallo,
 }: {
+  indice: number
   it: ItemLista
   a: Articulo
   m: Precio | null
@@ -299,14 +298,11 @@ const FilaArticulo = ({
   onAbrir: (id: string | null) => void
   onVerFoto: () => void
   onAlternar: () => void
-  onMas: () => void
-  onMenos: () => void
   onEliminar: () => void
   onVerFicha: () => void
   fallo?: string
 }) => {
   const opac = it.comprado ? 0.5 : 1
-  const opacControles = bloqueada ? 0.45 : 1
   const x = useMotionValue(0)
 
   // Otra fila se ha abierto (o se ha cerrado desde fuera, p. ej. al borrar):
@@ -325,12 +321,29 @@ const FilaArticulo = ({
   }
 
   return (
-    <div>
+    <motion.div
+      layout
+      initial={{ opacity: 0, height: 0 }}
+      animate={{
+        opacity: 1,
+        height: 'auto',
+        transition: { delay: indice * 0.035, ...MUELLE },
+      }}
+      exit={{ opacity: 0, height: 0, transition: { duration: 0.18 } }}
+      style={{ overflow: 'hidden' }}
+    >
       {/*
         PRUEBA de swipe: «Eliminar» vive debajo, a la derecha, tapado por la
         fila. La fila es la que se arrastra (`motion.div`); al soltar,
         `onDragEnd` decide si se queda abierta (revela el botón) o vuelve a
         su sitio, con un muelle en vez de una transición lineal.
+
+        PRUEBA de entrada/salida: el contenedor de fuera también es
+        `motion.div`. Al montar la lista, cada fila aparece con un pequeño
+        fundido + alto creciente, escalonada por `indice` (el «item
+        animator» de RecyclerView). Al borrar, `exit` la encoge a alto 0 en
+        vez de desaparecer de golpe; con `layout`, las filas de abajo se
+        deslizan para cerrar el hueco en lugar de saltar.
       */}
       <div style={{ position: 'relative', overflow: 'hidden' }}>
         {!bloqueada && (
@@ -481,64 +494,13 @@ const FilaArticulo = ({
             </button>
 
             {/*
-              Los dos controles de cantidad van APILADOS en una sola
-              columna: en fila gastaban 92px de ancho y el nombre del
-              artículo se quedaba corto, que es lo que hay que leer de un
-              vistazo en el pasillo. Apilados gastan 46.
-
-              Lo que cuesta: cada botón pasa de 64px de alto a 40. La fila
-              sube a 80px para no bajar de ahí —debajo de 40 el dedo falla, y
-              aquí fallar es cambiar una cantidad o, con cantidad 1, quitar
-              el artículo de la lista—.
-
-              El + arriba a propósito: es el que más se pulsa, y la mitad de
-              arriba de la fila queda más cerca del pulgar cuando la lista
-              se recorre de arriba abajo.
+              PRUEBA: sin columna de +/−. Con «Eliminar» ya al alcance del
+              swipe, el control de cantidad artículo a artículo dejó de
+              usarse (según nos dijiste); se quita para liberar los 46px.
+              Si hace falta cambiar la cantidad sin quitar el artículo, esa
+              vía habrá que devolverla en algún otro sitio —por ahora la
+              cantidad solo se ve, bajo el nombre.
             */}
-            <div
-              style={{
-                width: 46,
-                flex: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                borderLeft: '1px solid var(--color-divider)',
-                opacity: opacControles,
-              }}
-            >
-              <button
-                onClick={() => {
-                  if (!bloqueada) onMas()
-                }}
-                aria-label="Una unidad más"
-                style={{
-                  flex: 1,
-                  minHeight: 40,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--color-accent)',
-                }}
-              >
-                <IconoMas size={18} />
-              </button>
-              <button
-                onClick={() => {
-                  if (!bloqueada) onMenos()
-                }}
-                aria-label={it.cant > 1 ? 'Una unidad menos' : 'Quitar de la lista'}
-                style={{
-                  flex: 1,
-                  minHeight: 40,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--color-accent)',
-                  borderTop: '1px solid var(--color-divider)',
-                }}
-              >
-                <IconoMenos size={18} />
-              </button>
-            </div>
 
             <button
               onClick={onVerFicha}
@@ -599,7 +561,7 @@ const FilaArticulo = ({
           <Aviso>{fallo}</Aviso>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState, type RefObject } from 'react'
+import { animate, motion, useMotionValue } from 'framer-motion'
 import { useApp } from './estado/AppProvider'
 import { lista, articulo, supermercado } from './estado/consultas'
 import type { Ruta } from './estado/rutas'
@@ -30,6 +32,13 @@ import type { Instantanea } from '../aplicacion'
 export const App = () => {
   const { sesion, comprobandoSesion, nav, datos, imagenes, panelAnadir } = useApp()
   const { hayNueva } = useVersionNueva()
+
+  // PRUEBA, solo listaPrueba: sombra bajo la cabecera en cuanto el contenido
+  // se ha desplazado, como la elevación del AppBarLayout de Android.
+  const [scrolled, setScrolled] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const enPrueba = nav.ruta.n === 'listaPrueba'
+  const estiramiento = useEstiramiento(scrollRef, enPrueba)
 
   return (
     <div
@@ -70,8 +79,12 @@ export const App = () => {
         ) : (
           <>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              <Cabecera {...tituloDe(nav.ruta, datos)} />
+              <Cabecera {...tituloDe(nav.ruta, datos)} elevada={enPrueba && scrolled} />
               <div
+                ref={scrollRef}
+                onScroll={(e) => {
+                  if (enPrueba) setScrolled(e.currentTarget.scrollTop > 4)
+                }}
                 style={{
                   flex: 1,
                   overflowY: 'auto',
@@ -85,12 +98,12 @@ export const App = () => {
                     navegador no lo interpreta como «refrescar». Cuando se dé
                     por bueno se aplica siempre, sin el condicional de ruta.
                   */
-                  ...(nav.ruta.n === 'listaPrueba'
-                    ? { overscrollBehaviorY: 'contain' as const }
-                    : null),
+                  ...(enPrueba ? { overscrollBehaviorY: 'contain' as const } : null),
                 }}
               >
-                <Pantalla ruta={nav.ruta} />
+                <motion.div style={{ y: estiramiento }}>
+                  <Pantalla ruta={nav.ruta} />
+                </motion.div>
               </div>
               <BarraPestanas />
             </div>
@@ -103,6 +116,70 @@ export const App = () => {
       </div>
     </div>
   )
+}
+
+const MUELLE_ESTIRAMIENTO = { type: 'spring', stiffness: 400, damping: 32 } as const
+
+/**
+ * PRUEBA: estira el contenido con resistencia al arrastrar más allá del
+ * principio o el final de la lista, como el overscroll de Android 12+, en
+ * vez de parar en seco. Solo activo cuando `activo` es true (hoy, la ruta
+ * `listaPrueba`), y solo entra en juego en el borde exacto del scroll —el
+ * resto del gesto lo sigue llevando el scroll nativo del navegador.
+ *
+ * La resistencia usa raíz cuadrada del desplazamiento: cuanto más se tira,
+ * más cuesta seguir estirando, en vez de una regla de proporción fija.
+ */
+const useEstiramiento = (ref: RefObject<HTMLDivElement | null>, activo: boolean) => {
+  const y = useMotionValue(0)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !activo) return
+
+    let inicioY = 0
+    let arrastrando = false
+
+    const alEmpezar = (e: TouchEvent) => {
+      inicioY = e.touches[0].clientY
+      arrastrando = false
+    }
+
+    const alMover = (e: TouchEvent) => {
+      const delta = e.touches[0].clientY - inicioY
+      const enTope = el.scrollTop <= 0
+      const enFondo = el.scrollTop >= el.scrollHeight - el.clientHeight - 1
+
+      if (!arrastrando) {
+        if (delta > 0 && enTope) arrastrando = true
+        else if (delta < 0 && enFondo) arrastrando = true
+        else return
+      }
+
+      e.preventDefault()
+      const signo = Math.sign(delta)
+      const resistido = signo * Math.sqrt(Math.abs(delta)) * 3.5
+      y.set(Math.max(-40, Math.min(40, resistido)))
+    }
+
+    const alSoltar = () => {
+      if (arrastrando) animate(y, 0, MUELLE_ESTIRAMIENTO)
+      arrastrando = false
+    }
+
+    el.addEventListener('touchstart', alEmpezar, { passive: true })
+    el.addEventListener('touchmove', alMover, { passive: false })
+    el.addEventListener('touchend', alSoltar)
+    el.addEventListener('touchcancel', alSoltar)
+    return () => {
+      el.removeEventListener('touchstart', alEmpezar)
+      el.removeEventListener('touchmove', alMover)
+      el.removeEventListener('touchend', alSoltar)
+      el.removeEventListener('touchcancel', alSoltar)
+    }
+  }, [ref, activo, y])
+
+  return y
 }
 
 const Pantalla = ({ ruta }: { ruta: Ruta }) => {
