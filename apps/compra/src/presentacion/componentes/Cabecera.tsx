@@ -1,6 +1,21 @@
 import { useApp } from '../estado/AppProvider'
 import { tienePila } from '../estado/rutas'
-import { IconoAtras, IconoClaro, IconoOscuro } from '../iconos'
+import { IconoAtras, IconoCerrar, IconoClaro, IconoOscuro } from '../iconos'
+
+/**
+ * Si la app corre instalada como PWA (`display: standalone`), tiene su
+ * propia ventana y `window.close()` la cierra de verdad. En una pestaña
+ * normal del navegador no hay ventana que cerrar, así que el botón ni se
+ * muestra.
+ *
+ * iOS queda fuera aunque «añadir a inicio» también cuente como instalada:
+ * ahí Safari ignora `window.close()` en silencio, así que el botón se vería
+ * pero no haría nada.
+ */
+const appInstalada = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(display-mode: standalone)').matches &&
+  !/iPad|iPhone|iPod/.test(window.navigator.userAgent)
 
 /** Cabecera con kicker + título, flecha atrás cuando hay pila y conmutador de tema. */
 export const Cabecera = ({ kicker, titulo }: { kicker: string; titulo: string }) => {
@@ -42,6 +57,16 @@ export const Cabecera = ({ kicker, titulo }: { kicker: string; titulo: string })
       >
         {tema.tema === 'dark' ? <IconoOscuro size={19} /> : <IconoClaro size={19} />}
       </button>
+      {appInstalada() && (
+        <button
+          className="btn btn-secondary"
+          style={{ width: 44, height: 44, padding: 0, flex: 'none' }}
+          onClick={() => window.close()}
+          aria-label="Cerrar la app"
+        >
+          <IconoCerrar size={19} />
+        </button>
+      )}
     </div>
   )
 }

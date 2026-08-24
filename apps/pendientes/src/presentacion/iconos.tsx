@@ -227,3 +227,11 @@ export const IconoOscuro = (p: Props) => (
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
   </Svg>
 )
+
+/** `x`. Cerrar la app, junto al conmutador de tema. */
+export const IconoCerrar = (p: Props) => (
+  <Svg {...p}>
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </Svg>
+)
