@@ -125,6 +125,15 @@ export const IconoAvanzar = (p: Props) => (
 
 // ─── Acciones ───
 
+/** `ellipsis-vertical`. Más acciones, en la cabecera. */
+export const IconoMenu = (p: Props) => (
+  <Svg {...p}>
+    <circle cx="12" cy="5" r="1" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="19" r="1" fill="currentColor" stroke="none" />
+  </Svg>
+)
+
 /** `plus` */
 export const IconoMas = (p: Props) => (
   <Svg {...p}>

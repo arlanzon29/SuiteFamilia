@@ -22,7 +22,7 @@ import { IconoAvanzar, IconoMas, IconoMenos } from '../iconos'
  * falta, porque en memoria nada fallaba nunca.
  */
 export const DetalleLista = ({ listaId }: { listaId: string }) => {
-  const { datos, acciones, nav, sim, setSim, imagenes, setDlg, setVisor, setQ, setPanelAnadir } =
+  const { datos, acciones, nav, sim, setSim, imagenes, setVisor, setQ, setPanelAnadir } =
     useApp()
   const actual = lista(datos, listaId)
 
@@ -410,28 +410,6 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
             <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>
               Toca el precio de un artículo para verlo en cada supermercado.
             </div>
-            {!bloqueada && (
-              <button
-                className="btn btn-secondary"
-                style={{ minHeight: 48, justifyContent: 'space-between' }}
-                onClick={() => nav.ir({ n: 'dictar', id: actual.id })}
-              >
-                <span>Dictar o pegar varios a la vez</span>
-                <IconoAvanzar size={18} color="var(--color-accent)" />
-              </button>
-            )}
-            {!bloqueada && (
-              <button
-                className="btn btn-secondary"
-                style={{ minHeight: 48, justifyContent: 'space-between' }}
-                onClick={() => setDlg({ tipo: 'cerrarLista', id: actual.id })}
-              >
-                <span>Cerrar lista</span>
-                <span style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>
-                  deja de aparecer
-                </span>
-              </button>
-            )}
           </div>
         </>
       )}
@@ -441,10 +419,11 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
         navegación y tapaba las últimas filas en listas largas. En su lugar,
         un único botón flotante: es la acción que más se repite en la tienda
         —añadir uno más— y siempre está al alcance del pulgar, largo lo que
-        largo sea el carro. «Dictar o pegar varios a la vez», al ser una
-        acción de una sola vez por lista (se dicta al principio, no artículo a
-        artículo), pasa al pie con las demás acciones de la lista, ya sin
-        fijar.
+        largo sea el carro. «Dictar o pegar» y «Cerrar lista», al ser
+        acciones de una sola vez por lista (se dictan al principio, se cierra
+        al final), no merecen un FAB propio: viven en el menú de la
+        cabecera (ver `Cabecera.tsx`), alcanzable sin bajar hasta el final de
+        una lista larga.
 
         Se ancla al mismo `.marco-app` que el de Catálogo (ver ese comentario
         para el porqué de `absolute` y no `fixed`), y se oculta con la lista

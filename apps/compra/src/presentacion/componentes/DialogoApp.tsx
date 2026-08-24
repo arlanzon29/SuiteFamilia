@@ -6,6 +6,7 @@ import type { Dialogo } from '../estado/rutas'
 import { eur } from '../formato'
 import { SelectorUnidad } from './SelectorUnidad'
 import { Aviso, textoError } from './Aviso'
+import { Caja } from './Caja'
 import { IconoFavorito } from '../iconos'
 
 /**
@@ -293,32 +294,6 @@ const Contenido = ({ dlg }: { dlg: Dialogo }) => {
     </Caja>
   )
 }
-
-const Caja = ({
-  titulo,
-  texto,
-  cerrar,
-  children,
-}: {
-  titulo: string
-  texto?: string | null
-  cerrar: () => void
-  children: React.ReactNode
-}) => (
-  <div
-    className="dialog-backdrop"
-    role="presentation"
-    onClick={(e) => {
-      if (e.target === e.currentTarget) cerrar()
-    }}
-  >
-    <div className="dialog" role="dialog" aria-modal="true" aria-label={titulo}>
-      <div className="dialog-title">{titulo}</div>
-      {texto && <div className="dialog-body">{texto}</div>}
-      {children}
-    </div>
-  </div>
-)
 
 const OpcionTienda = ({
   nombre,

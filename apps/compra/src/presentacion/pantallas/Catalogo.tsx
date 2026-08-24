@@ -3,7 +3,7 @@ import { buscaArticulos, cuentaFavoritos, mejor } from '../estado/consultas'
 import { eur } from '../formato'
 import { Miniatura } from '../componentes/Miniatura'
 import { FiltroFavoritos } from '../componentes/Favorito'
-import { IconoAvanzar, IconoFavorito, IconoMas } from '../iconos'
+import { IconoFavorito, IconoMas } from '../iconos'
 
 /**
  * El catálogo: artículos genéricos y el mejor precio conocido. Desde aquí se
@@ -178,29 +178,9 @@ export const Catalogo = () => {
         )
       })}
 
-      <div
-        style={{
-          padding: '16px 14px 26px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}
-      >
-        <button
-          className="btn btn-secondary"
-          style={{ minHeight: 48, justifyContent: 'space-between' }}
-          onClick={() =>
-            setDlg({
-              tipo: 'tiendaRonda',
-              ids: datos.articulos.map((a) => a.id),
-              origen: 'el catálogo',
-            })
-          }
-        >
-          <span>Apuntar precios del catálogo</span>
-          <IconoAvanzar size={18} color="var(--color-accent)" />
-        </button>
-      </div>
+      {/* Hueco al pie: sin él, la última fila queda pegada a la barra de
+          pestañas. */}
+      <div style={{ height: 16 }} />
 
       {/*
         El botón de crear vivía al pie de la lista, y la lista solo crece: con
