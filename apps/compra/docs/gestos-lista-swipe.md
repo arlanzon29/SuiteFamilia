@@ -406,3 +406,13 @@ Reusable en cualquier otra app de la suite:
    §7 de este documento: un descendiente `position: absolute` se ancla al
    antecesor más cercano con `transform` (que `framer-motion` añade al
    animar), no necesariamente al que se espera.
+8. Aplicado ya en el Inicio de las cuatro apps (suite, compra, pendientes,
+   saber): cada una tiene su propia copia de `componentes/Ripple.tsx`
+   (idéntico, sin dependencias de la app — mismo patrón que
+   `useEstiramiento`, no un paquete compartido). Se cableó en todos los
+   botones/tarjetas tocables de cada pantalla de Inicio (tarjeta «Seguir
+   comprando», filas de pendientes antiguos, tarjetas «Lo último» de
+   Saber, botones secundarios «Ver mis listas»/«Apuntar algo»/«Ir a
+   Saber»…). Cuando una fila sale de un `.map()`, hace falta extraerla a su
+   propio componente para poder llamar a `useRipple()` (regla de hooks),
+   igual que ya pasaba con `useMotionValue` en el swipe (§1.2).

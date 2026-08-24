@@ -1,4 +1,5 @@
 import { Aviso } from '../componentes/Aviso'
+import { useRipple } from '../componentes/Ripple'
 import { useApp } from '../estado/AppProvider'
 import { nombreDe, saludo } from '../formato'
 
@@ -11,6 +12,7 @@ import { nombreDe, saludo } from '../formato'
 export const Inicio = () => {
   const { resumen, cargandoResumen, errorResumen, datos, nav, sesion } = useApp()
   const nombre = sesion?.nombre ?? nombreDe(sesion?.email ?? '')
+  const rippleIrASaber = useRipple()
 
   return (
     <div
@@ -48,9 +50,11 @@ export const Inicio = () => {
           </p>
           <button
             className="btn btn-secondary"
-            style={{ minHeight: 48 }}
+            onPointerDown={rippleIrASaber.onPointerDown}
+            style={{ minHeight: 48, position: 'relative', overflow: 'hidden' }}
             onClick={() => nav.pestana('conocimientos')}
           >
+            {rippleIrASaber.nodo}
             Ir a Saber
           </button>
         </div>
@@ -60,30 +64,12 @@ export const Inicio = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div className="kicker-neutral">Lo último</div>
               {resumen.ultimos.map((c) => (
-                <button
+                <TarjetaUltimo
                   key={c.id}
+                  tema={c.tema}
+                  titulo={c.titulo}
                   onClick={() => nav.irDesde({ n: 'ficha', id: c.id }, [{ n: 'inicio' }])}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    border: '1px solid var(--color-divider)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '12px 14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 3,
-                  }}
-                >
-                  <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>
-                    {c.tema}
-                  </span>
-                  <span
-                    className="elipsis"
-                    style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 600 }}
-                  >
-                    {c.titulo}
-                  </span>
-                </button>
+                />
               ))}
             </div>
           )}
@@ -113,6 +99,37 @@ const Saludo = ({ nombre }: { nombre: string }) => (
     {nombre ? `, ${nombre}` : ''}
   </div>
 )
+
+const TarjetaUltimo = ({ tema, titulo, onClick }: { tema: string; titulo: string; onClick: () => void }) => {
+  const ripple = useRipple()
+
+  return (
+    <button
+      onClick={onClick}
+      onPointerDown={ripple.onPointerDown}
+      style={{
+        width: '100%',
+        textAlign: 'left',
+        border: '1px solid var(--color-divider)',
+        borderRadius: 'var(--radius-md)',
+        padding: '12px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {ripple.nodo}
+      <span className="tag tag-accent" style={{ alignSelf: 'flex-start' }}>
+        {tema}
+      </span>
+      <span className="elipsis" style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 600 }}>
+        {titulo}
+      </span>
+    </button>
+  )
+}
 
 const Cifra = ({ valor, etiqueta }: { valor: number; etiqueta: string }) => (
   <div

@@ -1,6 +1,7 @@
 import { useApp } from '../estado/AppProvider'
 import { listaPorHacer, listaTodoPorHacer } from '../estado/consultas'
 import { Aviso } from '../componentes/Aviso'
+import { useRipple } from '../componentes/Ripple'
 import { diaCompleto, hace, nombreDe, plural, saludo } from '../formato'
 import { IconoAvanzar } from '../iconos'
 
@@ -22,6 +23,8 @@ export const Inicio = () => {
   const { casos, datos, sesion, cargando, error, nav } = useApp()
   const hoy = casos.hoy()
   const nombre = sesion?.nombre ?? nombreDe(sesion?.email ?? '')
+  const rippleApuntar = useRipple()
+  const rippleVerTodos = useRipple()
   const todoPendiente = listaTodoPorHacer(datos)
   const totalImportantes = todoPendiente.filter((p) => p.importante).length
   const todos = listaPorHacer(datos, hoy)
@@ -85,9 +88,11 @@ export const Inicio = () => {
           </p>
           <button
             className="btn btn-secondary"
-            style={{ minHeight: 48 }}
+            onPointerDown={rippleApuntar.onPointerDown}
+            style={{ minHeight: 48, position: 'relative', overflow: 'hidden' }}
             onClick={() => nav.pestana('pendientes')}
           >
+            {rippleApuntar.nodo}
             Apuntar algo
           </button>
         </div>
@@ -103,42 +108,12 @@ export const Inicio = () => {
             </p>
           )}
           {antiguos.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => nav.ir({ n: 'ficha', id: p.id })}
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                gap: 12,
-                textAlign: 'left',
-                minHeight: 48,
-                padding: '10px 2px',
-                borderBottom: '1px solid var(--color-divider)',
-              }}
-            >
-              <span
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  fontFamily: 'var(--font-heading)',
-                  fontWeight: 600,
-                  fontSize: 16,
-                  lineHeight: 1.2,
-                }}
-              >
-                {p.titulo}
-              </span>
-              <span
-                className="cifra"
-                style={{ flex: 'none', fontSize: 12, color: 'var(--color-neutral-600)' }}
-              >
-                {hace(p.creado, hoy)}
-              </span>
-            </button>
+            <FilaAntigua key={p.id} titulo={p.titulo} hace={hace(p.creado, hoy)} onClick={() => nav.ir({ n: 'ficha', id: p.id })} />
           ))}
           {importantes.length > antiguos.length && (
             <button
               onClick={() => nav.pestana('pendientes')}
+              onPointerDown={rippleVerTodos.onPointerDown}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -147,8 +122,11 @@ export const Inicio = () => {
                 fontSize: 13,
                 color: 'var(--color-accent-700)',
                 paddingTop: 6,
+                position: 'relative',
+                overflow: 'hidden',
               }}
             >
+              {rippleVerTodos.nodo}
               Ver los {plural(importantes.length, 'pendiente', 'pendientes')}
               <IconoAvanzar size={15} />
             </button>
@@ -158,6 +136,45 @@ export const Inicio = () => {
 
       <Version />
     </div>
+  )
+}
+
+const FilaAntigua = ({ titulo, hace, onClick }: { titulo: string; hace: string; onClick: () => void }) => {
+  const ripple = useRipple()
+
+  return (
+    <button
+      onClick={onClick}
+      onPointerDown={ripple.onPointerDown}
+      style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 12,
+        textAlign: 'left',
+        minHeight: 48,
+        padding: '10px 2px',
+        borderBottom: '1px solid var(--color-divider)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {ripple.nodo}
+      <span
+        style={{
+          flex: 1,
+          minWidth: 0,
+          fontFamily: 'var(--font-heading)',
+          fontWeight: 600,
+          fontSize: 16,
+          lineHeight: 1.2,
+        }}
+      >
+        {titulo}
+      </span>
+      <span className="cifra" style={{ flex: 'none', fontSize: 12, color: 'var(--color-neutral-600)' }}>
+        {hace}
+      </span>
+    </button>
   )
 }
 

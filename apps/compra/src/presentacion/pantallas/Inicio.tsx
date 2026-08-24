@@ -1,5 +1,6 @@
 import type { ListaAbierta } from '../../dominio/modelo'
 import { Aviso } from '../componentes/Aviso'
+import { useRipple } from '../componentes/Ripple'
 import { useApp } from '../estado/AppProvider'
 import { nombreDe, saludo } from '../formato'
 
@@ -18,6 +19,7 @@ import { nombreDe, saludo } from '../formato'
 export const Inicio = () => {
   const { resumen, cargandoResumen, errorResumen, nav, sesion } = useApp()
   const nombre = sesion?.nombre ?? nombreDe(sesion?.email ?? '')
+  const rippleListas = useRipple()
 
   // Primera carga: ni cifras ni hueco, para no enseñar ceros que no son.
   if (!resumen) {
@@ -81,9 +83,11 @@ export const Inicio = () => {
           </p>
           <button
             className="btn btn-secondary"
-            style={{ minHeight: 48 }}
+            onPointerDown={rippleListas.onPointerDown}
+            style={{ minHeight: 48, position: 'relative', overflow: 'hidden' }}
             onClick={() => nav.pestana('listas')}
           >
+            {rippleListas.nodo}
             Ver mis listas
           </button>
         </div>
@@ -115,50 +119,60 @@ const Saludo = ({ nombre }: { nombre: string }) => (
   </div>
 )
 
-const EnCurso = ({ lista, onSeguir }: { lista: ListaAbierta; onSeguir: () => void }) => (
-  <div
-    style={{
-      border: '1px solid var(--color-divider)',
-      borderRadius: 'var(--radius-md)',
-      padding: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
-    }}
-  >
-    <div className="kicker">Compra en curso</div>
+const EnCurso = ({ lista, onSeguir }: { lista: ListaAbierta; onSeguir: () => void }) => {
+  const ripple = useRipple()
+
+  return (
     <div
       style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 28,
-        fontWeight: 600,
-        lineHeight: 1.1,
-      }}
-    >
-      {lista.nombre}
-    </div>
-    <div
-      className="cifra"
-      style={{
+        border: '1px solid var(--color-divider)',
+        borderRadius: 'var(--radius-md)',
+        padding: 16,
         display: 'flex',
-        alignItems: 'baseline',
-        gap: 8,
-        fontSize: 14,
-        color: 'var(--color-neutral-700)',
-        borderTop: '1px solid var(--color-divider)',
-        paddingTop: 10,
+        flexDirection: 'column',
+        gap: 12,
       }}
     >
-      <span style={{ flex: 1 }}>
-        {lista.items - lista.pendientes} de {lista.items} cogidos
-      </span>
-      <span style={{ color: 'var(--color-accent-700)' }}>{lista.pendientes} por coger</span>
+      <div className="kicker">Compra en curso</div>
+      <div
+        style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: 28,
+          fontWeight: 600,
+          lineHeight: 1.1,
+        }}
+      >
+        {lista.nombre}
+      </div>
+      <div
+        className="cifra"
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 8,
+          fontSize: 14,
+          color: 'var(--color-neutral-700)',
+          borderTop: '1px solid var(--color-divider)',
+          paddingTop: 10,
+        }}
+      >
+        <span style={{ flex: 1 }}>
+          {lista.items - lista.pendientes} de {lista.items} cogidos
+        </span>
+        <span style={{ color: 'var(--color-accent-700)' }}>{lista.pendientes} por coger</span>
+      </div>
+      <button
+        className="btn btn-primary btn-tinte"
+        onPointerDown={ripple.onPointerDown}
+        style={{ minHeight: 50, fontSize: 16, position: 'relative', overflow: 'hidden' }}
+        onClick={onSeguir}
+      >
+        {ripple.nodo}
+        Seguir comprando
+      </button>
     </div>
-    <button className="btn btn-primary btn-tinte" style={{ minHeight: 50, fontSize: 16 }} onClick={onSeguir}>
-      Seguir comprando
-    </button>
-  </div>
-)
+  )
+}
 
 const Cifra = ({ valor, etiqueta }: { valor: number; etiqueta: string }) => (
   <div
