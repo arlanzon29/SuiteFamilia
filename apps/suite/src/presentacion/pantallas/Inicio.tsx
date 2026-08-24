@@ -1,5 +1,6 @@
 import { useApp } from '../estado/AppProvider'
 import { Aviso } from '../componentes/Aviso'
+import { useRipple } from '../componentes/Ripple'
 import { nombreDe, plural, saludo } from '../formato'
 import { IconoAvanzar, IconoCompra, IconoPendientes, IconoSaber } from '../iconos'
 
@@ -114,60 +115,68 @@ const Tarjeta = ({
   /** Cuántos huecos pinta el esqueleto mientras no hay cifras todavía. */
   cantidadCifras: number
   cifras: { valor: number; etiqueta: string }[]
-}) => (
-  <a
-    href={href}
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 14,
-      border: '1px solid var(--color-divider)',
-      borderRadius: 'var(--radius-md)',
-      padding: 16,
-      color: 'inherit',
-      textDecoration: 'none',
-    }}
-  >
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <Icono size={22} />
-      <span
-        style={{
-          flex: 1,
-          fontFamily: 'var(--font-heading)',
-          fontSize: 20,
-          fontWeight: 600,
-        }}
-      >
-        {titulo}
-      </span>
-      <IconoAvanzar size={18} color="var(--color-neutral-600)" />
-    </div>
+}) => {
+  const ripple = useRipple()
 
-    {error ? (
-      <Aviso>{error}</Aviso>
-    ) : cargando && cifras.length === 0 ? (
-      <div style={{ display: 'flex', gap: 10 }}>
-        {Array.from({ length: cantidadCifras }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              height: 58,
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--color-neutral-200)',
-            }}
-          />
-        ))}
+  return (
+    <a
+      href={href}
+      onPointerDown={ripple.onPointerDown}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+        border: '1px solid var(--color-divider)',
+        borderRadius: 'var(--radius-md)',
+        padding: 16,
+        color: 'inherit',
+        textDecoration: 'none',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {ripple.nodo}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Icono size={22} />
+        <span
+          style={{
+            flex: 1,
+            fontFamily: 'var(--font-heading)',
+            fontSize: 20,
+            fontWeight: 600,
+          }}
+        >
+          {titulo}
+        </span>
+        <IconoAvanzar size={18} color="var(--color-neutral-600)" />
       </div>
-    ) : (
-      <div style={{ display: 'flex', gap: 10 }}>
-        {cifras.map((c) => (
-          <Cifra key={c.etiqueta} valor={c.valor} etiqueta={c.etiqueta} />
-        ))}
-      </div>
-    )}
-  </a>
-)
+
+      {error ? (
+        <Aviso>{error}</Aviso>
+      ) : cargando && cifras.length === 0 ? (
+        <div style={{ display: 'flex', gap: 10 }}>
+          {Array.from({ length: cantidadCifras }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: 58,
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-neutral-200)',
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 10 }}>
+          {cifras.map((c) => (
+            <Cifra key={c.etiqueta} valor={c.valor} etiqueta={c.etiqueta} />
+          ))}
+        </div>
+      )}
+    </a>
+  )
+}
 
 const Cifra = ({ valor, etiqueta }: { valor: number; etiqueta: string }) => (
   <div
