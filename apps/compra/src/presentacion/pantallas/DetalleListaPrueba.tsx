@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion'
 import { ordenDeCompra, pendientes } from '../../dominio/modelo'
+import type { Articulo, ItemLista, Precio, Supermercado } from '../../dominio/modelo'
 import { useApp } from '../estado/AppProvider'
 import { articulo, lista, mejor, supermercado } from '../estado/consultas'
 import { MOSTRAR_TOTAL_LISTA } from '../config'
@@ -147,316 +148,35 @@ export const DetalleListaPrueba = ({ listaId }: { listaId: string }) => {
               if (!a) return null
               const m = mejor(datos, it.artId)
               const tienda = m ? supermercado(datos, m.superId) : undefined
-              const opac = it.comprado ? 0.5 : 1
-              const opacControles = bloqueada ? 0.45 : 1
-              const foto = imagenes.foto(a.id)
-              const alternar = () => {
-                if (!bloqueada)
-                  intenta(it.artId, () =>
-                    acciones.marcarComprado(actual.id, it.artId, !it.comprado),
-                  )
-              }
 
               return (
-                <div key={it.artId}>
-                  {/*
-                    PRUEBA de swipe: «Eliminar» vive debajo, a la derecha,
-                    tapado por la fila. La fila es la que se arrastra
-                    (`motion.div`); al soltar, `onDragEnd` decide si se queda
-                    abierta (revela el botón) o vuelve a su sitio, con un
-                    muelle en vez de una transición lineal —el "gravedad" del
-                    que hablamos—.
-                  */}
-                  <div style={{ position: 'relative', overflow: 'hidden' }}>
-                    {!bloqueada && (
-                      <button
-                        onClick={() => {
-                          setAbierto(null)
-                          intenta(it.artId, () =>
-                            acciones.cambiarCantidad(actual.id, it.artId, 0),
-                          )
-                        }}
-                        aria-label={`Eliminar ${a.nombre} de la lista`}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          bottom: 0,
-                          right: 0,
-                          width: 80,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: '#c0392b',
-                          color: '#fff',
-                        }}
-                      >
-                        <IconoBorrar size={20} />
-                      </button>
-                    )}
-                    <motion.div
-                      drag={bloqueada ? false : 'x'}
-                      dragConstraints={{ left: -80, right: 0 }}
-                      dragElastic={0.06}
-                      dragMomentum={false}
-                      animate={{ x: abierto === it.artId ? -80 : 0 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                      onDragEnd={(_e, info) => {
-                        // Se abre si se ha arrastrado más de la mitad del
-                        // botón, o si el gesto ha sido rápido aunque corto
-                        // (fling): la velocidad cuenta tanto como la
-                        // distancia, que es justo el «gravedad» de Android.
-                        const abrir = info.offset.x < -40 || info.velocity.x < -400
-                        setAbierto(abrir ? it.artId : null)
-                      }}
-                      style={{
-                        // `position: relative` (sin más) mete esta fila en la
-                        // misma capa de apilamiento que el botón de abajo:
-                        // así pinta después de él y lo tapa mientras está
-                        // cerrada. Sin esto, un elemento `position: absolute`
-                        // se pinta SIEMPRE por encima de uno sin posicionar,
-                        // sin importar el orden en el HTML —por eso se veía
-                        // el rojo todo el rato.
-                        position: 'relative',
-                        touchAction: 'pan-y',
-                        background: 'var(--color-bg)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'stretch',
-                          borderBottom: '1px solid var(--color-divider)',
-                        }}
-                      >
-                    {/*
-                      Fuera la casilla: marcar comprado es tocar el nombre.
-
-                      La casilla era 30px de ancho más su hueco, y lo que decía
-                      lo dicen ya el tachado del nombre y el 50% de opacidad de
-                      la fila entera —la foto incluida—. Lo que se gana con esos
-                      píxeles es la foto al doble: 76 en vez de 38, que es la
-                      diferencia entre reconocer lo que ya sabes y poder leer la
-                      etiqueta desde el carro.
-
-                      La fila NO crece: sigue midiendo los 80px que fija la
-                      columna del + y el −, y la foto los ocupa casi enteros.
-                    */}
-                    {foto && (
-                      <button
-                        onClick={() => setVisor({ artId: a.id })}
-                        aria-label={`Ver la foto de ${a.nombre}`}
-                        style={{
-                          flex: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '2px 0 2px 14px',
-                        }}
-                      >
-                        <Miniatura
-                          src={foto}
-                          nombre={a.nombre}
-                          tamano={76}
-                          opacidad={opac}
-                        />
-                      </button>
-                    )}
-
-                    <button
-                      onClick={alternar}
-                      aria-pressed={it.comprado}
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        /*
-                          8 arriba y abajo, no 12. Con el nombre a 21px, dos
-                          lineas mas la cantidad suman 79px de contenido: con
-                          los 12 de antes la fila se iria a 87 y dejaria de
-                          medir los 80px que fija la columna del + y el −.
-                        */
-                        padding: foto ? '8px 8px 8px 12px' : '8px 8px 8px 14px',
-                        textAlign: 'left',
-                        minHeight: 80,
-                      }}
-                    >
-                      {/*
-                        Sin foto, la inicial se queda dentro del botón del
-                        nombre: no hay nada que ampliar, y un hueco muerto de
-                        76px en la fila que más se toca se paga en cada compra.
-                      */}
-                      {!foto && <Miniatura nombre={a.nombre} tamano={76} opacidad={opac} />}
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span
-                          style={{
-                            display: 'block',
-                            /*
-                              21px, no 17. Esto se lee en el pasillo, con el
-                              carro en la otra mano y el movil a la distancia
-                              del brazo: es el unico texto de la fila que hay
-                              que reconocer de un vistazo.
-
-                              El interlineado va FIJO en 24. Sin fijarlo, el
-                              alto de la fila depende de lo que el navegador
-                              decida para `normal`, y lo que se esta ajustando
-                              al pixel son justo esos 80px.
-                            */
-                            fontSize: 21,
-                            lineHeight: '24px',
-                            textDecoration: it.comprado ? 'line-through' : 'none',
-                            opacity: opac,
-                          }}
-                        >
-                          {a.nombre}
-                        </span>
-                        <span
-                          className="cifra"
-                          style={{
-                            display: 'block',
-                            /*
-                              Interlineado fijo aqui tambien: con el `normal`
-                              del navegador esta linea gastaba 19px, y la fila
-                              con foto y nombre de dos lineas se iba a 84 en
-                              vez de a los 81 de §3 undecies.
-                            */
-                            fontSize: 12,
-                            lineHeight: '16px',
-                            color: 'var(--color-neutral-600)',
-                          }}
-                        >
-                          {it.cant} {a.unidad}
-                        </span>
-                      </span>
-                    </button>
-
-                    {/*
-                      Los dos controles de cantidad van APILADOS en una sola
-                      columna: en fila gastaban 92px de ancho y el nombre del
-                      artículo se quedaba corto, que es lo que hay que leer de
-                      un vistazo en el pasillo. Apilados gastan 46.
-
-                      Lo que cuesta: cada botón pasa de 64px de alto a 40. La
-                      fila sube a 80px para no bajar de ahí —debajo de 40 el
-                      dedo falla, y aquí fallar es cambiar una cantidad o, con
-                      cantidad 1, quitar el artículo de la lista—.
-
-                      El + arriba a propósito: es el que más se pulsa, y la
-                      mitad de arriba de la fila queda más cerca del pulgar
-                      cuando la lista se recorre de arriba abajo.
-                    */}
-                    <div
-                      style={{
-                        width: 46,
-                        flex: 'none',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        borderLeft: '1px solid var(--color-divider)',
-                        opacity: opacControles,
-                      }}
-                    >
-                      <button
-                        onClick={() => {
-                          if (!bloqueada)
-                            intenta(it.artId, () =>
-                              acciones.cambiarCantidad(actual.id, it.artId, it.cant + 1),
-                            )
-                        }}
-                        aria-label="Una unidad más"
-                        style={{
-                          flex: 1,
-                          minHeight: 40,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--color-accent)',
-                        }}
-                      >
-                        <IconoMas size={18} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!bloqueada)
-                            intenta(it.artId, () =>
-                              acciones.cambiarCantidad(actual.id, it.artId, it.cant - 1),
-                            )
-                        }}
-                        aria-label={it.cant > 1 ? 'Una unidad menos' : 'Quitar de la lista'}
-                        style={{
-                          flex: 1,
-                          minHeight: 40,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--color-accent)',
-                          borderTop: '1px solid var(--color-divider)',
-                        }}
-                      >
-                        <IconoMenos size={18} />
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => nav.ir({ n: 'ficha', id: it.artId })}
-                      aria-label="Ver precios por supermercado"
-                      style={{
-                        /*
-                          104, no 126. La letra mas gorda no cabe sin ancho, y
-                          §3 nonies ya dejo dicho de donde se recorta cuando
-                          hiciera falta: de aqui, nunca de los 40px de alto del
-                          + y el −.
-                        */
-                        width: 96,
-                        flex: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '0 4px 0 8px',
-                        borderLeft: '1px solid var(--color-divider)',
-                        textAlign: 'right',
-                      }}
-                    >
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span
-                          className="cifra"
-                          style={{
-                            display: 'block',
-                            /*
-                              El importe se queda en 14. «sin precio» baja a 13
-                              y va sin partir: es la cadena mas larga que pasa
-                              por aqui y, estrechada la columna, a 14 se partia
-                              en dos lineas. Es ademas la que menos importa —lo
-                              que se lee es la cifra—.
-                            */
-                            fontSize: m ? 14 : 13,
-                            whiteSpace: 'nowrap',
-                            color: 'var(--color-accent-700)',
-                          }}
-                        >
-                          {m ? eur(m.importe) : 'sin precio'}
-                        </span>
-                        <span
-                          className="elipsis"
-                          style={{
-                            display: 'block',
-                            fontSize: 11,
-                            color: 'var(--color-neutral-600)',
-                          }}
-                        >
-                          {tienda ? tienda.nombre : 'ver precios'}
-                        </span>
-                      </span>
-                      <IconoAvanzar size={16} color="var(--color-accent)" />
-                    </button>
-                      </div>
-                    </motion.div>
-                  </div>
-                  {fallo?.clave === it.artId && (
-                    <div style={{ padding: '10px 14px 12px' }}>
-                      <Aviso>{fallo.texto}</Aviso>
-                    </div>
-                  )}
-                </div>
+                <FilaArticulo
+                  key={it.artId}
+                  it={it}
+                  a={a}
+                  m={m}
+                  tienda={tienda}
+                  bloqueada={bloqueada}
+                  foto={imagenes.foto(a.id)}
+                  abierta={abierto === it.artId}
+                  onAbrir={(id) => setAbierto(id)}
+                  onVerFoto={() => setVisor({ artId: a.id })}
+                  onAlternar={() =>
+                    intenta(it.artId, () => acciones.marcarComprado(actual.id, it.artId, !it.comprado))
+                  }
+                  onMas={() =>
+                    intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, it.cant + 1))
+                  }
+                  onMenos={() =>
+                    intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, it.cant - 1))
+                  }
+                  onEliminar={() => {
+                    setAbierto(null)
+                    intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, 0))
+                  }}
+                  onVerFicha={() => nav.ir({ n: 'ficha', id: it.artId })}
+                  fallo={fallo?.clave === it.artId ? fallo.texto : undefined}
+                />
               )
             })}
           </div>
@@ -532,6 +252,352 @@ export const DetalleListaPrueba = ({ listaId }: { listaId: string }) => {
         >
           <IconoMas size={26} />
         </button>
+      )}
+    </div>
+  )
+}
+
+/** Muelle único para abrir/cerrar el swipe: mismo tacto en toda la lista. */
+const MUELLE = { type: 'spring', stiffness: 500, damping: 40 } as const
+
+/**
+ * Una fila arrastrable, con su propio `useMotionValue`.
+ *
+ * Antes la posición se controlaba con la prop `animate` de framer-motion
+ * atada al estado `abierto`: si el gesto terminaba en el mismo lado en el
+ * que ya estaba (p. ej. sueltas antes de cruzar el umbral y la fila ya
+ * estaba cerrada), el estado no cambiaba, React no volvía a renderizar, y
+ * `animate` nunca disparaba la animación de vuelta —la fila se quedaba
+ * exactamente donde la soltaste, a medias. Con un `useMotionValue` propio y
+ * una llamada explícita a `animate(x, …)` dentro de `onDragEnd`, el muelle
+ * se dispara siempre, sin depender de que el estado cambie.
+ */
+const FilaArticulo = ({
+  it,
+  a,
+  m,
+  tienda,
+  bloqueada,
+  foto,
+  abierta,
+  onAbrir,
+  onVerFoto,
+  onAlternar,
+  onMas,
+  onMenos,
+  onEliminar,
+  onVerFicha,
+  fallo,
+}: {
+  it: ItemLista
+  a: Articulo
+  m: Precio | null
+  tienda: Supermercado | undefined
+  bloqueada: boolean
+  foto: string | undefined
+  abierta: boolean
+  onAbrir: (id: string | null) => void
+  onVerFoto: () => void
+  onAlternar: () => void
+  onMas: () => void
+  onMenos: () => void
+  onEliminar: () => void
+  onVerFicha: () => void
+  fallo?: string
+}) => {
+  const opac = it.comprado ? 0.5 : 1
+  const opacControles = bloqueada ? 0.45 : 1
+  const x = useMotionValue(0)
+
+  // Otra fila se ha abierto (o se ha cerrado desde fuera, p. ej. al borrar):
+  // si esta ya no es la abierta, vuelve a su sitio con el mismo muelle.
+  useEffect(() => {
+    if (!abierta) animate(x, 0, MUELLE)
+  }, [abierta, x])
+
+  const onDragEnd = (_e: unknown, info: PanInfo) => {
+    // Se abre si se ha arrastrado más de la mitad del botón, o si el gesto
+    // ha sido rápido aunque corto (fling): la velocidad cuenta tanto como
+    // la distancia, que es justo el «gravedad» de Android.
+    const abrir = info.offset.x < -40 || info.velocity.x < -400
+    animate(x, abrir ? -80 : 0, MUELLE)
+    onAbrir(abrir ? it.artId : null)
+  }
+
+  return (
+    <div>
+      {/*
+        PRUEBA de swipe: «Eliminar» vive debajo, a la derecha, tapado por la
+        fila. La fila es la que se arrastra (`motion.div`); al soltar,
+        `onDragEnd` decide si se queda abierta (revela el botón) o vuelve a
+        su sitio, con un muelle en vez de una transición lineal.
+      */}
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        {!bloqueada && (
+          <button
+            onClick={onEliminar}
+            aria-label={`Eliminar ${a.nombre} de la lista`}
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              right: 0,
+              width: 80,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#c0392b',
+              color: '#fff',
+            }}
+          >
+            <IconoBorrar size={20} />
+          </button>
+        )}
+        <motion.div
+          drag={bloqueada ? false : 'x'}
+          dragConstraints={{ left: -80, right: 0 }}
+          dragElastic={0.06}
+          dragMomentum={false}
+          onDragEnd={onDragEnd}
+          style={{
+            // `x` es el motion value propio de la fila: la posición durante
+            // el arrastre y la del muelle al soltar viven en el mismo sitio,
+            // sin una prop `animate` en paralelo peleándose por el control.
+            x,
+            // `position: relative` (sin más) mete esta fila en la misma capa
+            // de apilamiento que el botón de abajo: así pinta después de él
+            // y lo tapa mientras está cerrada. Sin esto, un elemento
+            // `position: absolute` se pinta SIEMPRE por encima de uno sin
+            // posicionar, sin importar el orden en el HTML.
+            position: 'relative',
+            touchAction: 'pan-y',
+            background: 'var(--color-bg)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'stretch',
+              borderBottom: '1px solid var(--color-divider)',
+            }}
+          >
+            {/*
+              Fuera la casilla: marcar comprado es tocar el nombre.
+
+              La casilla era 30px de ancho más su hueco, y lo que decía lo
+              dicen ya el tachado del nombre y el 50% de opacidad de la fila
+              entera —la foto incluida—. Lo que se gana con esos píxeles es
+              la foto al doble: 76 en vez de 38, que es la diferencia entre
+              reconocer lo que ya sabes y poder leer la etiqueta desde el
+              carro.
+
+              La fila NO crece: sigue midiendo los 80px que fija la columna
+              del + y el −, y la foto los ocupa casi enteros.
+            */}
+            {foto && (
+              <button
+                onClick={onVerFoto}
+                aria-label={`Ver la foto de ${a.nombre}`}
+                style={{
+                  flex: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px 0 2px 14px',
+                }}
+              >
+                <Miniatura src={foto} nombre={a.nombre} tamano={76} opacidad={opac} />
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                if (!bloqueada) onAlternar()
+              }}
+              aria-pressed={it.comprado}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                /*
+                  8 arriba y abajo, no 12. Con el nombre a 21px, dos lineas
+                  mas la cantidad suman 79px de contenido: con los 12 de
+                  antes la fila se iria a 87 y dejaria de medir los 80px que
+                  fija la columna del + y el −.
+                */
+                padding: foto ? '8px 8px 8px 12px' : '8px 8px 8px 14px',
+                textAlign: 'left',
+                minHeight: 80,
+              }}
+            >
+              {/*
+                Sin foto, la inicial se queda dentro del botón del nombre: no
+                hay nada que ampliar, y un hueco muerto de 76px en la fila
+                que más se toca se paga en cada compra.
+              */}
+              {!foto && <Miniatura nombre={a.nombre} tamano={76} opacidad={opac} />}
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span
+                  style={{
+                    display: 'block',
+                    /*
+                      21px, no 17. Esto se lee en el pasillo, con el carro en
+                      la otra mano y el movil a la distancia del brazo: es el
+                      unico texto de la fila que hay que reconocer de un
+                      vistazo.
+
+                      El interlineado va FIJO en 24. Sin fijarlo, el alto de
+                      la fila depende de lo que el navegador decida para
+                      `normal`, y lo que se esta ajustando al pixel son
+                      justo esos 80px.
+                    */
+                    fontSize: 21,
+                    lineHeight: '24px',
+                    textDecoration: it.comprado ? 'line-through' : 'none',
+                    opacity: opac,
+                  }}
+                >
+                  {a.nombre}
+                </span>
+                <span
+                  className="cifra"
+                  style={{
+                    display: 'block',
+                    /*
+                      Interlineado fijo aqui tambien: con el `normal` del
+                      navegador esta linea gastaba 19px, y la fila con foto y
+                      nombre de dos lineas se iba a 84 en vez de a los 81 de
+                      §3 undecies.
+                    */
+                    fontSize: 12,
+                    lineHeight: '16px',
+                    color: 'var(--color-neutral-600)',
+                  }}
+                >
+                  {it.cant} {a.unidad}
+                </span>
+              </span>
+            </button>
+
+            {/*
+              Los dos controles de cantidad van APILADOS en una sola
+              columna: en fila gastaban 92px de ancho y el nombre del
+              artículo se quedaba corto, que es lo que hay que leer de un
+              vistazo en el pasillo. Apilados gastan 46.
+
+              Lo que cuesta: cada botón pasa de 64px de alto a 40. La fila
+              sube a 80px para no bajar de ahí —debajo de 40 el dedo falla, y
+              aquí fallar es cambiar una cantidad o, con cantidad 1, quitar
+              el artículo de la lista—.
+
+              El + arriba a propósito: es el que más se pulsa, y la mitad de
+              arriba de la fila queda más cerca del pulgar cuando la lista
+              se recorre de arriba abajo.
+            */}
+            <div
+              style={{
+                width: 46,
+                flex: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                borderLeft: '1px solid var(--color-divider)',
+                opacity: opacControles,
+              }}
+            >
+              <button
+                onClick={() => {
+                  if (!bloqueada) onMas()
+                }}
+                aria-label="Una unidad más"
+                style={{
+                  flex: 1,
+                  minHeight: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--color-accent)',
+                }}
+              >
+                <IconoMas size={18} />
+              </button>
+              <button
+                onClick={() => {
+                  if (!bloqueada) onMenos()
+                }}
+                aria-label={it.cant > 1 ? 'Una unidad menos' : 'Quitar de la lista'}
+                style={{
+                  flex: 1,
+                  minHeight: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--color-accent)',
+                  borderTop: '1px solid var(--color-divider)',
+                }}
+              >
+                <IconoMenos size={18} />
+              </button>
+            </div>
+
+            <button
+              onClick={onVerFicha}
+              aria-label="Ver precios por supermercado"
+              style={{
+                /*
+                  104, no 126. La letra mas gorda no cabe sin ancho, y §3
+                  nonies ya dejo dicho de donde se recorta cuando hiciera
+                  falta: de aqui, nunca de los 40px de alto del + y el −.
+                */
+                width: 96,
+                flex: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '0 4px 0 8px',
+                borderLeft: '1px solid var(--color-divider)',
+                textAlign: 'right',
+              }}
+            >
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span
+                  className="cifra"
+                  style={{
+                    display: 'block',
+                    /*
+                      El importe se queda en 14. «sin precio» baja a 13 y va
+                      sin partir: es la cadena mas larga que pasa por aqui y,
+                      estrechada la columna, a 14 se partia en dos lineas. Es
+                      ademas la que menos importa —lo que se lee es la
+                      cifra—.
+                    */
+                    fontSize: m ? 14 : 13,
+                    whiteSpace: 'nowrap',
+                    color: 'var(--color-accent-700)',
+                  }}
+                >
+                  {m ? eur(m.importe) : 'sin precio'}
+                </span>
+                <span
+                  className="elipsis"
+                  style={{
+                    display: 'block',
+                    fontSize: 11,
+                    color: 'var(--color-neutral-600)',
+                  }}
+                >
+                  {tienda ? tienda.nombre : 'ver precios'}
+                </span>
+              </span>
+              <IconoAvanzar size={16} color="var(--color-accent)" />
+            </button>
+          </div>
+        </motion.div>
+      </div>
+      {fallo && (
+        <div style={{ padding: '10px 14px 12px' }}>
+          <Aviso>{fallo}</Aviso>
+        </div>
       )}
     </div>
   )
