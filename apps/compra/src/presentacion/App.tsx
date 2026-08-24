@@ -28,7 +28,7 @@ import type { Instantanea } from '../aplicacion'
  */
 export const App = () => {
   const { sesion, comprobandoSesion, nav, datos, imagenes, panelAnadir } = useApp()
-  const { hayNueva, actualizar } = useVersionNueva()
+  const { hayNueva } = useVersionNueva()
 
   return (
     <div
@@ -54,7 +54,7 @@ export const App = () => {
           borderInline: '1px solid var(--color-divider)',
         }}
       >
-        {hayNueva && <AvisoVersion onActualizar={actualizar} />}
+        {hayNueva && <AvisoVersion />}
         {/* Un único input de fichero para fotos de producto y logos de tienda. */}
         <input
           type="file"

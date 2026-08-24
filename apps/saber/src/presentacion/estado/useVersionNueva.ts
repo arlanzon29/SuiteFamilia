@@ -17,6 +17,11 @@ const MINUTOS = 5
  *
  * Solo corre en producción: en desarrollo no existe `version.json` y no
  * hace falta, Vite ya sirve los módulos al vuelo.
+ *
+ * No hay botón de «Actualizar»: forzar la recarga por script resultó frágil
+ * (dos cachés distintas, historial roto, resultado que no siempre
+ * convergía). El aviso solo informa; quien lo ve arrastra el dedo para
+ * refrescar o cierra y vuelve a abrir la app, como ya haría de todos modos.
  */
 export const useVersionNueva = () => {
   const [hayNueva, setHayNueva] = useState(false)
@@ -46,41 +51,5 @@ export const useVersionNueva = () => {
     }
   }, [comprueba])
 
-  /**
-   * Actualizar de verdad, no solo esta pestaña.
-   *
-   * Dos problemas distintos, y hace falta resolver los dos:
-   *
-   * 1. `location.href = '...?v=...'` es *navegar*, no recargar: mete una
-   *    entrada nueva en el historial, y con dos entradas Chrome deja de
-   *    permitir cerrar la ventana por script —por eso el botón de cerrar
-   *    fallaba justo después de actualizar—. `location.replace()` en su
-   *    lugar sustituye la entrada actual en vez de añadir una, así que el
-   *    historial se queda en una sola.
-   *
-   * 2. La URL con query y la que abre el icono de inicio (`/suite/`, sin
-   *    query) son dos entradas de caché *distintas*: refrescar una no
-   *    refresca la otra. Antes de ir a la versionada —que sí trae lo nuevo
-   *    seguro, por eso «funciona» al pulsar Actualizar—, se intenta refrescar
-   *    también la caché de la URL real con `cache: 'reload'` (pide de red y
-   *    además guarda lo recibido, a diferencia de `no-store`), para que la
-   *    próxima vez que se abra desde el icono no dependa de que hayan pasado
-   *    los ~10 minutos de `Cache-Control` de GitHub Pages.
-   *
-   *    No es infalible —si esta petición no llega a un servidor del CDN ya
-   *    al día, la próxima apertura seguirá viendo la versión vieja y volverá
-   *    a salir el aviso—, pero entonces vuelve a funcionar con solo pulsar
-   *    Actualizar otra vez: el aviso no se pierde ni deja el aparato a
-   *    ciegas, solo tarda algún ciclo más en converger.
-   */
-  const actualizar = async () => {
-    try {
-      await fetch(window.location.pathname, { cache: 'reload' })
-    } catch {
-      // sin conexión: sigue a lo de abajo, que sí trae la versión pedida
-    }
-    window.location.replace(`${window.location.pathname}?v=${Date.now()}`)
-  }
-
-  return { hayNueva, actualizar }
+  return { hayNueva }
 }

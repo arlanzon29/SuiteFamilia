@@ -5,15 +5,17 @@
  * antes del formulario de entrar, si aún no hay sesión—, así que empuja el
  * contenido hacia abajo en vez de taparlo. Flotar encima habría cubierto el
  * título y los botones de tema/cerrar de la cabecera.
+ *
+ * Sin botón de actualizar: solo avisa. Quien lo ve arrastra el dedo para
+ * refrescar o cierra y reabre la app.
  */
-export const AvisoVersion = ({ onActualizar }: { onActualizar: () => void }) => (
+export const AvisoVersion = () => (
   <div
     role="status"
     style={{
       flex: 'none',
       display: 'flex',
       alignItems: 'center',
-      gap: 10,
       margin: '10px 12px 0',
       padding: '10px 12px',
       border: '1px solid var(--color-accent)',
@@ -23,13 +25,6 @@ export const AvisoVersion = ({ onActualizar }: { onActualizar: () => void }) => 
       boxShadow: 'var(--shadow-md)',
     }}
   >
-    <span style={{ flex: 1, fontSize: 13 }}>Hay una versión nueva.</span>
-    <button
-      className="btn btn-tinte"
-      style={{ flex: 'none', padding: '6px 14px' }}
-      onClick={onActualizar}
-    >
-      Actualizar
-    </button>
+    <span style={{ fontSize: 13 }}>Hay una versión nueva: arrastra hacia abajo para refrescar.</span>
   </div>
 )

@@ -19,7 +19,7 @@ import { Ajustes } from './pantallas/Ajustes'
  */
 export const App = () => {
   const { sesion, comprobandoSesion, nav, tituloFicha, galeria } = useApp()
-  const { hayNueva, actualizar } = useVersionNueva()
+  const { hayNueva } = useVersionNueva()
 
   return (
     <div
@@ -45,7 +45,7 @@ export const App = () => {
           borderInline: '1px solid var(--color-divider)',
         }}
       >
-        {hayNueva && <AvisoVersion onActualizar={actualizar} />}
+        {hayNueva && <AvisoVersion />}
         {/* Un único input de fichero para toda la galería. */}
         <input
           type="file"

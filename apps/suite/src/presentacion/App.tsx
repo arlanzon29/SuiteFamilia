@@ -18,7 +18,7 @@ import { Ajustes } from './pantallas/Ajustes'
  */
 export const App = () => {
   const { sesion, comprobandoSesion, nav } = useApp()
-  const { hayNueva, actualizar } = useVersionNueva()
+  const { hayNueva } = useVersionNueva()
 
   return (
     <div
@@ -44,7 +44,7 @@ export const App = () => {
           borderInline: '1px solid var(--color-divider)',
         }}
       >
-        {hayNueva && <AvisoVersion onActualizar={actualizar} />}
+        {hayNueva && <AvisoVersion />}
         {comprobandoSesion ? null : !sesion ? (
           <Login />
         ) : (
