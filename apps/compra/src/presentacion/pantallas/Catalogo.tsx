@@ -3,7 +3,7 @@ import { buscaArticulos, cuentaFavoritos, mejor } from '../estado/consultas'
 import { eur } from '../formato'
 import { Miniatura } from '../componentes/Miniatura'
 import { FiltroFavoritos } from '../componentes/Favorito'
-import { IconoAvanzar, IconoFavorito } from '../iconos'
+import { IconoAvanzar, IconoFavorito, IconoMas } from '../iconos'
 
 /**
  * El catálogo: artículos genéricos y el mejor precio conocido. Desde aquí se
@@ -187,13 +187,6 @@ export const Catalogo = () => {
         }}
       >
         <button
-          className="btn btn-primary btn-tinte"
-          style={{ minHeight: 52, fontSize: 16 }}
-          onClick={() => setDlg({ tipo: 'nuevoArt' })}
-        >
-          + Artículo nuevo
-        </button>
-        <button
           className="btn btn-secondary"
           style={{ minHeight: 48, justifyContent: 'space-between' }}
           onClick={() =>
@@ -208,6 +201,42 @@ export const Catalogo = () => {
           <IconoAvanzar size={18} color="var(--color-accent)" />
         </button>
       </div>
+
+      {/*
+        El botón de crear vivía al pie de la lista, y la lista solo crece: con
+        cien artículos hay que desplazarse entero para llegar a él. Flotando
+        sobre el contenido siempre está a un toque, sea cual sea el largo de
+        la lista —el mismo sitio que ocupa en la app de Contactos de Android.
+
+        Va `position: absolute` y no `fixed`: el marco de la app
+        (`.marco-app` en App.tsx) es el ancestro con posición más cercano, así
+        que el botón queda anclado a ese recuadro de 440px y no a la ventana
+        entera. El contenedor con scroll que hay entre medias no tiene
+        posición propia, así que no lo arrastra al desplazarse.
+
+        El `bottom: 62` coincide con el alto de la barra de pestañas
+        (`BarraPestanas`), para no taparla.
+      */}
+      <button
+        className="btn-tinte"
+        aria-label="Artículo nuevo"
+        onClick={() => setDlg({ tipo: 'nuevoArt' })}
+        style={{
+          position: 'absolute',
+          right: 16,
+          bottom: 78,
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: 'var(--shadow-md)',
+          zIndex: 5,
+        }}
+      >
+        <IconoMas size={26} />
+      </button>
     </div>
   )
 }
