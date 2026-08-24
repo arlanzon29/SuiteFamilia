@@ -64,23 +64,23 @@ const escribeVersion = (outDir: string): Plugin => ({
 export default defineConfig(({ command, isPreview }) => {
   const outDir = raiz('dist/suite')
   return {
-  base: command === 'build' || isPreview ? '/SuiteFamilia/suite/' : '/',
-  envDir: raiz(''),
-  plugins: [react(), ...(command === 'build' ? [escribeVersion(outDir)] : [])],
-  define: {
-    __VERSION__: JSON.stringify(sello),
-    __COMPILADA__: JSON.stringify(compilada),
-    __ENTORNO__: JSON.stringify(command === 'build' ? 'compilada' : 'dev'),
-  },
-  build: {
-    outDir,
-    emptyOutDir: true,
-  },
-  server: {
-    host: true,
-    ...(hayCertificado
-      ? { https: { key: readFileSync(clave), cert: readFileSync(certificado) } }
-      : {}),
-  },
+    base: command === 'build' || isPreview ? '/SuiteFamilia/suite/' : '/',
+    envDir: raiz(''),
+    plugins: [react(), ...(command === 'build' ? [escribeVersion(outDir)] : [])],
+    define: {
+      __VERSION__: JSON.stringify(sello),
+      __COMPILADA__: JSON.stringify(compilada),
+      __ENTORNO__: JSON.stringify(command === 'build' ? 'compilada' : 'dev'),
+    },
+    build: {
+      outDir,
+      emptyOutDir: true,
+    },
+    server: {
+      host: true,
+      ...(hayCertificado
+        ? { https: { key: readFileSync(clave), cert: readFileSync(certificado) } }
+        : {}),
+    },
   }
 })

@@ -1,8 +1,10 @@
 import { useApp } from './estado/AppProvider'
 import { lista, articulo, supermercado } from './estado/consultas'
 import type { Ruta } from './estado/rutas'
+import { useVersionNueva } from './estado/useVersionNueva'
 import { Cabecera } from './componentes/Cabecera'
 import { BarraPestanas } from './componentes/BarraPestanas'
+import { AvisoVersion } from './componentes/AvisoVersion'
 import { DialogoApp } from './componentes/DialogoApp'
 import { HojaDePrecio } from './componentes/HojaDePrecio'
 import { VisorFoto } from './componentes/VisorFoto'
@@ -26,6 +28,7 @@ import type { Instantanea } from '../aplicacion'
  */
 export const App = () => {
   const { sesion, comprobandoSesion, nav, datos, imagenes, panelAnadir } = useApp()
+  const { hayNueva, actualizar } = useVersionNueva()
 
   return (
     <div
@@ -51,6 +54,7 @@ export const App = () => {
           borderInline: '1px solid var(--color-divider)',
         }}
       >
+        {hayNueva && <AvisoVersion onActualizar={actualizar} />}
         {/* Un único input de fichero para fotos de producto y logos de tienda. */}
         <input
           type="file"

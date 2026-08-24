@@ -1,7 +1,8 @@
 import { execSync } from 'node:child_process'
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 /**
@@ -44,23 +45,41 @@ const clave = raiz('certs/dev-key.pem')
 const certificado = raiz('certs/dev-cert.pem')
 const hayCertificado = existsSync(clave) && existsSync(certificado)
 
-export default defineConfig(({ command, isPreview }) => ({
-  base: command === 'build' || isPreview ? '/SuiteFamilia/saber/' : '/',
-  envDir: raiz(''),
-  plugins: [react()],
-  define: {
-    __VERSION__: JSON.stringify(sello),
-    __COMPILADA__: JSON.stringify(compilada),
-    __ENTORNO__: JSON.stringify(command === 'build' ? 'compilada' : 'dev'),
+/**
+ * Deja `version.json` junto al resto de lo compilado, con el mismo sello que
+ * `__VERSION__`. Es lo que la app va a preguntar en caliente (sin caché) para
+ * saber si lo que tiene cargado sigue siendo lo último publicado: `index.html`
+ * puede tardar hasta 10 minutos en refrescarse en GitHub Pages, así que abrir
+ * la app no garantiza traer el build nuevo por sí solo.
+ */
+const escribeVersion = (outDir: string): Plugin => ({
+  name: 'escribe-version-json',
+  closeBundle() {
+    mkdirSync(outDir, { recursive: true })
+    writeFileSync(join(outDir, 'version.json'), JSON.stringify({ version: sello }))
   },
-  build: {
-    outDir: raiz('dist/saber'),
-    emptyOutDir: true,
-  },
-  server: {
-    host: true,
-    ...(hayCertificado
-      ? { https: { key: readFileSync(clave), cert: readFileSync(certificado) } }
-      : {}),
-  },
-}))
+})
+
+export default defineConfig(({ command, isPreview }) => {
+  const outDir = raiz('dist/saber')
+  return {
+    base: command === 'build' || isPreview ? '/SuiteFamilia/saber/' : '/',
+    envDir: raiz(''),
+    plugins: [react(), ...(command === 'build' ? [escribeVersion(outDir)] : [])],
+    define: {
+      __VERSION__: JSON.stringify(sello),
+      __COMPILADA__: JSON.stringify(compilada),
+      __ENTORNO__: JSON.stringify(command === 'build' ? 'compilada' : 'dev'),
+    },
+    build: {
+      outDir,
+      emptyOutDir: true,
+    },
+    server: {
+      host: true,
+      ...(hayCertificado
+        ? { https: { key: readFileSync(clave), cert: readFileSync(certificado) } }
+        : {}),
+    },
+  }
+})

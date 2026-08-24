@@ -1,8 +1,10 @@
 import { useApp } from './estado/AppProvider'
 import { pendiente } from './estado/consultas'
 import type { Ruta } from './estado/rutas'
+import { useVersionNueva } from './estado/useVersionNueva'
 import { Cabecera } from './componentes/Cabecera'
 import { BarraPestanas } from './componentes/BarraPestanas'
+import { AvisoVersion } from './componentes/AvisoVersion'
 import { DialogoApp } from './componentes/DialogoApp'
 import { Login } from './pantallas/Login'
 import { Inicio } from './pantallas/Inicio'
@@ -22,6 +24,7 @@ import type { Instantanea } from '../aplicacion'
  */
 export const App = () => {
   const { sesion, comprobandoSesion, nav, datos, setDlg } = useApp()
+  const { hayNueva, actualizar } = useVersionNueva()
 
   return (
     <div
@@ -47,6 +50,7 @@ export const App = () => {
           borderInline: '1px solid var(--color-divider)',
         }}
       >
+        {hayNueva && <AvisoVersion onActualizar={actualizar} />}
         {comprobandoSesion ? null : !sesion ? (
           <Login />
         ) : (
