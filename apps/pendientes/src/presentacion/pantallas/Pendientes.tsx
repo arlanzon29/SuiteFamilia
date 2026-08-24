@@ -29,8 +29,12 @@ export const Pendientes = () => {
    * no son una regla de negocio —qué se ve y cuándo—, son un capricho de quien
    * mira en este momento, y por eso no se guardan ni sobreviven a salir de la
    * pantalla.
+   *
+   * «Solo importantes» empieza activo: es lo primero que hay que mirar al
+   * entrar. Si no hay nada marcado, el botón de filtro ni siquiera sale
+   * (`hayImportantes` más abajo) y esto no cambia nada.
    */
-  const [soloImportantes, setSoloImportantes] = useState(false)
+  const [soloImportantes, setSoloImportantes] = useState(true)
   /**
    * «Todo el histórico»: se salta la ventana de los siete días y mezcla lo
    * apuntado para más adelante con lo que ya toca, en el mismo orden de
@@ -39,11 +43,18 @@ export const Pendientes = () => {
    */
   const [todoHistorico, setTodoHistorico] = useState(false)
   const hayImportantes = filas.some((p) => p.importante) || masAdelante.some((p) => p.importante)
+  /**
+   * El filtro solo cuenta si hay algo que filtrar. Sin esto, con la lista sin
+   * ningún importante marcado, «solo importantes» activo por defecto dejaría
+   * la pantalla vacía y sin el chip —que solo sale si `hayImportantes`— para
+   * volver atrás.
+   */
+  const filtroImportantes = soloImportantes && hayImportantes
   const base = todoHistorico ? listaTodoPorHacer(datos) : filas
-  const filasVistas = soloImportantes ? base.filter((p) => p.importante) : base
+  const filasVistas = filtroImportantes ? base.filter((p) => p.importante) : base
   const masAdelanteVisto = todoHistorico
     ? []
-    : soloImportantes
+    : filtroImportantes
       ? masAdelante.filter((p) => p.importante)
       : masAdelante
 
@@ -113,7 +124,7 @@ export const Pendientes = () => {
         </Filtro>
       </div>
 
-      {soloImportantes && filasVistas.length === 0 && (
+      {filtroImportantes && filasVistas.length === 0 && (
         <p style={{ margin: '4px 2px', fontSize: 13, color: 'var(--color-neutral-600)' }}>
           Nada marcado como importante, {todoHistorico ? 'de lo apuntado' : 'de lo que ya toca'}.
         </p>
@@ -127,15 +138,6 @@ export const Pendientes = () => {
           abrir={() => nav.ir({ n: 'ficha', id: p.id })}
         />
       ))}
-
-      <button
-        className="btn btn-primary btn-tinte"
-        style={{ minHeight: 52, fontSize: 16, marginTop: 4 }}
-        onClick={() => setDlg({ tipo: 'nuevo' })}
-      >
-        <IconoMas size={18} />
-        Pendiente nuevo
-      </button>
 
       {/*
         Lo apuntado para más adelante, en voz baja y plegado.
@@ -182,6 +184,43 @@ export const Pendientes = () => {
             ))}
         </div>
       )}
+
+      {/*
+        El botón de apuntar vivía al pie de la lista, y esta lista solo crece
+        —no hay quien la vacíe hasta que se hace lo pendiente—. Flotando sobre
+        el contenido siempre está a un toque, tan largo como se ponga «lo que
+        toca esta semana», igual que en el Catálogo y el detalle de lista de
+        la app de compra.
+
+        Va `position: absolute` y no `fixed`: el marco de la app
+        (`.marco-app` en App.tsx) es el ancestro con posición más cercano, así
+        que el botón queda anclado a ese recuadro y no a la ventana entera. El
+        contenedor con scroll que hay entre medias no tiene posición propia,
+        así que no lo arrastra al desplazarse.
+
+        El `bottom: 78` deja sitio a la barra de pestañas (62px) más un
+        margen, igual que en la app de compra.
+      */}
+      <button
+        className="btn-tinte"
+        aria-label="Pendiente nuevo"
+        onClick={() => setDlg({ tipo: 'nuevo' })}
+        style={{
+          position: 'absolute',
+          right: 16,
+          bottom: 78,
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: 'var(--shadow-md)',
+          zIndex: 5,
+        }}
+      >
+        <IconoMas size={26} />
+      </button>
     </div>
   )
 }
