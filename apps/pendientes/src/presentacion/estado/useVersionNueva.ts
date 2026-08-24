@@ -49,29 +49,37 @@ export const useVersionNueva = () => {
   /**
    * Actualizar de verdad, no solo esta pestaña.
    *
-   * `location.href = '...?v=...'` parecía la manera obvia de saltarse la
-   * caché, pero era el propio fallo: esa URL con query es una entrada de
-   * caché *distinta* de la que abre el icono de inicio (`/suite/`, sin
-   * query), así que quedaba al día la pestaña de ese momento y ninguna otra
-   * futura — la siguiente vez que se abriera la app, sería otra vez la vieja.
-   * De paso, navegar (en vez de recargar) mete una entrada nueva en el
-   * historial, y con dos entradas Chrome deja de dejar cerrar la ventana por
-   * script: por eso el botón de cerrar dejaba de funcionar justo después de
-   * actualizar.
+   * Dos problemas distintos, y hace falta resolver los dos:
    *
-   * La manera correcta: refrescar la caché de la URL *real* —la que usa el
-   * icono— con una petición que se salta la caché (`cache: 'reload'`, que sí
-   * pide de red y sí deja lo pedido guardado, al revés que `no-store`), y
-   * luego recargar esa misma entrada con `location.reload()`, que no añade
-   * nada al historial.
+   * 1. `location.href = '...?v=...'` es *navegar*, no recargar: mete una
+   *    entrada nueva en el historial, y con dos entradas Chrome deja de
+   *    permitir cerrar la ventana por script —por eso el botón de cerrar
+   *    fallaba justo después de actualizar—. `location.replace()` en su
+   *    lugar sustituye la entrada actual en vez de añadir una, así que el
+   *    historial se queda en una sola.
+   *
+   * 2. La URL con query y la que abre el icono de inicio (`/suite/`, sin
+   *    query) son dos entradas de caché *distintas*: refrescar una no
+   *    refresca la otra. Antes de ir a la versionada —que sí trae lo nuevo
+   *    seguro, por eso «funciona» al pulsar Actualizar—, se intenta refrescar
+   *    también la caché de la URL real con `cache: 'reload'` (pide de red y
+   *    además guarda lo recibido, a diferencia de `no-store`), para que la
+   *    próxima vez que se abra desde el icono no dependa de que hayan pasado
+   *    los ~10 minutos de `Cache-Control` de GitHub Pages.
+   *
+   *    No es infalible —si esta petición no llega a un servidor del CDN ya
+   *    al día, la próxima apertura seguirá viendo la versión vieja y volverá
+   *    a salir el aviso—, pero entonces vuelve a funcionar con solo pulsar
+   *    Actualizar otra vez: el aviso no se pierde ni deja el aparato a
+   *    ciegas, solo tarda algún ciclo más en converger.
    */
   const actualizar = async () => {
     try {
       await fetch(window.location.pathname, { cache: 'reload' })
     } catch {
-      // sin conexión: el reload de abajo se sirve de lo que ya hubiera en caché
+      // sin conexión: sigue a lo de abajo, que sí trae la versión pedida
     }
-    window.location.reload()
+    window.location.replace(`${window.location.pathname}?v=${Date.now()}`)
   }
 
   return { hayNueva, actualizar }
