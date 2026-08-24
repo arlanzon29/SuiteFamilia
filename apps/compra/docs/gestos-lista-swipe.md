@@ -20,8 +20,9 @@ entonces fundir el resultado en la pantalla real.
 
 - **Catálogo** (`Catalogo.tsx`, esta misma app): swipe horizontal completo
   (§1) con lápiz en vez de papelera —edita en vez de borrar—, más los
-  efectos de scroll vertical (§3-5). Sin la animación de colapso al borrar
-  (§2): el catálogo no borra artículos desde la fila.
+  efectos de scroll vertical (§3-5) y la entrada escalonada (§2, sin la
+  parte de colapso al borrar: el catálogo no borra artículos desde la fila,
+  solo los filtra al buscar, y esos sí entran/salen con `AnimatePresence`).
 - **Pendientes** (`apps/pendientes`, app aparte): solo los efectos de scroll
   vertical (§3-5) en la lista de pendientes, **sin** swipe horizontal — ahí
   no hay ninguna acción de fila que revelar.
@@ -373,3 +374,35 @@ contenedor.
 11. Cuando quede bien: fundir el clon en la pantalla real, borrar la ruta y
     el acceso de prueba, y quitar los condicionales de ruta que ya no hagan
     falta (dejarlos activos siempre, en vez de solo para la ruta de prueba).
+
+## 9. Ripple (Material Design) al tocar tarjetas/botones
+
+Montado por primera vez en `apps/suite` para las tarjetas de `Inicio.tsx`
+(componente `Tarjeta`), como `apps/suite/src/presentacion/componentes/Ripple.tsx`.
+Reusable en cualquier otra app de la suite:
+
+1. `npm install framer-motion` en la app si no lo tiene ya.
+2. `useRipple()` es un hook que devuelve `{ onPointerDown, nodo }`:
+   - `onPointerDown` se cablea al elemento que recibe el toque
+     (`<a onPointerDown={ripple.onPointerDown}>`). Se usa `onPointerDown`
+     y no `onClick` para que el círculo nazca en el instante del toque, no
+     al soltar.
+   - `nodo` es el `<AnimatePresence>` con las ondas activas; se pinta como
+     hijo del mismo elemento, en cualquier punto del JSX (usa
+     `position: absolute`, así que no importa el orden mientras el padre
+     tenga `position: relative`).
+3. El elemento que recibe `onPointerDown` necesita `position: relative` y
+   `overflow: hidden` para que el círculo quede recortado a sus bordes.
+4. Cada onda usa `getBoundingClientRect()` del elemento en el momento del
+   toque para calcular `x`/`y` relativos, y el lado más largo del elemento
+   como diámetro base. `animate={{ scale: 4, ... }}` sobre ese diámetro
+   cubre cualquier esquina aunque el toque caiga lejos del centro.
+5. Color: `var(--color-accent)` con opacidad baja (`0.18` inicial, baja a
+   `0` en ~450ms) — se nota sobre el fondo sin tapar el contenido.
+6. No bloquea la navegación: `onPointerDown` no hace `preventDefault`, así
+   que el `<a href>` (o el `onClick` del botón) sigue funcionando normal.
+7. Antes de reusar `Ripple.tsx` en un elemento que ya tenga otros hijos
+   `position: absolute` propios (p. ej. un botón flotante dentro), revisar
+   §7 de este documento: un descendiente `position: absolute` se ancla al
+   antecesor más cercano con `transform` (que `framer-motion` añade al
+   animar), no necesariamente al que se espera.
