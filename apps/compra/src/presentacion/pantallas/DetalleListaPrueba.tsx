@@ -7,7 +7,7 @@ import { MOSTRAR_TOTAL_LISTA } from '../config'
 import { eur } from '../formato'
 import { Miniatura } from '../componentes/Miniatura'
 import { Aviso, textoError } from '../componentes/Aviso'
-import { IconoAvanzar, IconoMas, IconoMenos } from '../iconos'
+import { IconoAvanzar, IconoBorrar, IconoMas, IconoMenos } from '../iconos'
 
 /**
  * Copia de recreo de `DetalleLista.tsx`, sin más diferencia por ahora.
@@ -183,13 +183,14 @@ export const DetalleListaPrueba = ({ listaId }: { listaId: string }) => {
                           bottom: 0,
                           right: 0,
                           width: 80,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           background: '#c0392b',
                           color: '#fff',
-                          fontSize: 13,
-                          fontWeight: 600,
                         }}
                       >
-                        Eliminar
+                        <IconoBorrar size={20} />
                       </button>
                     )}
                     <motion.div
@@ -207,7 +208,18 @@ export const DetalleListaPrueba = ({ listaId }: { listaId: string }) => {
                         const abrir = info.offset.x < -40 || info.velocity.x < -400
                         setAbierto(abrir ? it.artId : null)
                       }}
-                      style={{ touchAction: 'pan-y', background: 'var(--color-bg)' }}
+                      style={{
+                        // `position: relative` (sin más) mete esta fila en la
+                        // misma capa de apilamiento que el botón de abajo:
+                        // así pinta después de él y lo tapa mientras está
+                        // cerrada. Sin esto, un elemento `position: absolute`
+                        // se pinta SIEMPRE por encima de uno sin posicionar,
+                        // sin importar el orden en el HTML —por eso se veía
+                        // el rojo todo el rato.
+                        position: 'relative',
+                        touchAction: 'pan-y',
+                        background: 'var(--color-bg)',
+                      }}
                     >
                       <div
                         style={{
