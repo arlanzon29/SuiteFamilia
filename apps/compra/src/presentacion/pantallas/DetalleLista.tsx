@@ -22,7 +22,8 @@ import { IconoAvanzar, IconoMas, IconoMenos } from '../iconos'
  * falta, porque en memoria nada fallaba nunca.
  */
 export const DetalleLista = ({ listaId }: { listaId: string }) => {
-  const { datos, acciones, nav, sim, setSim, imagenes, setDlg, setVisor } = useApp()
+  const { datos, acciones, nav, sim, setSim, imagenes, setDlg, setVisor, setQ, setPanelAnadir } =
+    useApp()
   const actual = lista(datos, listaId)
 
   // Un solo fallo a la vez, con la clave de a quién pertenece: el `artId` de la
@@ -383,8 +384,7 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
 
           <div
             style={{
-              /* 152px reservados para la barra fija de añadir + la navegación. */
-              padding: '4px 14px 152px',
+              padding: '4px 14px 26px',
               display: 'flex',
               flexDirection: 'column',
               gap: 10,
@@ -414,6 +414,16 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
               <button
                 className="btn btn-secondary"
                 style={{ minHeight: 48, justifyContent: 'space-between' }}
+                onClick={() => nav.ir({ n: 'dictar', id: actual.id })}
+              >
+                <span>Dictar o pegar varios a la vez</span>
+                <IconoAvanzar size={18} color="var(--color-accent)" />
+              </button>
+            )}
+            {!bloqueada && (
+              <button
+                className="btn btn-secondary"
+                style={{ minHeight: 48, justifyContent: 'space-between' }}
                 onClick={() => setDlg({ tipo: 'cerrarLista', id: actual.id })}
               >
                 <span>Cerrar lista</span>
@@ -424,6 +434,46 @@ export const DetalleLista = ({ listaId }: { listaId: string }) => {
             )}
           </div>
         </>
+      )}
+
+      {/*
+        La barra fija de «Añadir artículo del catálogo» competía con la
+        navegación y tapaba las últimas filas en listas largas. En su lugar,
+        un único botón flotante: es la acción que más se repite en la tienda
+        —añadir uno más— y siempre está al alcance del pulgar, largo lo que
+        largo sea el carro. «Dictar o pegar varios a la vez», al ser una
+        acción de una sola vez por lista (se dicta al principio, no artículo a
+        artículo), pasa al pie con las demás acciones de la lista, ya sin
+        fijar.
+
+        Se ancla al mismo `.marco-app` que el de Catálogo (ver ese comentario
+        para el porqué de `absolute` y no `fixed`), y se oculta con la lista
+        cerrada: sin edición, no hay nada que añadir.
+      */}
+      {!bloqueada && (
+        <button
+          className="btn-tinte"
+          aria-label="Añadir artículo del catálogo"
+          onClick={() => {
+            setQ('')
+            setPanelAnadir(true)
+          }}
+          style={{
+            position: 'absolute',
+            right: 16,
+            bottom: 78,
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 'var(--shadow-md)',
+            zIndex: 5,
+          }}
+        >
+          <IconoMas size={26} />
+        </button>
       )}
     </div>
   )

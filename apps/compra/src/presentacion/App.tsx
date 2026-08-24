@@ -3,7 +3,6 @@ import { lista, articulo, supermercado } from './estado/consultas'
 import type { Ruta } from './estado/rutas'
 import { Cabecera } from './componentes/Cabecera'
 import { BarraPestanas } from './componentes/BarraPestanas'
-import { BarraAnadir } from './componentes/BarraAnadir'
 import { DialogoApp } from './componentes/DialogoApp'
 import { HojaDePrecio } from './componentes/HojaDePrecio'
 import { VisorFoto } from './componentes/VisorFoto'
@@ -78,7 +77,6 @@ export const App = () => {
               </div>
               <BarraPestanas />
             </div>
-            <BarraAnadir />
             {panelAnadir && <PanelAnadir />}
             <HojaDePrecio />
             <DialogoApp />
