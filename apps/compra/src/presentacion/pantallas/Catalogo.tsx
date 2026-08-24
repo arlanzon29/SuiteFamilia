@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  AnimatePresence,
   animate,
   motion,
   useMotionValue,
@@ -118,22 +119,25 @@ export const Catalogo = ({ estiramiento }: { estiramiento: MotionValue<number> }
         </div>
       )}
 
-      {filtrados.map((a) => (
-        <FilaCatalogo
-          key={a.id}
-          a={a}
-          m={mejor(datos, a.id)}
-          foto={imagenes.foto(a.id)}
-          abierta={abierto === a.id}
-          onAbrir={(id) => setAbierto(id)}
-          onVerFoto={() => setVisor({ artId: a.id })}
-          onVerFicha={() => nav.ir({ n: 'ficha', id: a.id })}
-          onEditar={() => {
-            setAbierto(null)
-            setDlg({ tipo: 'editArt', id: a.id })
-          }}
-        />
-      ))}
+      <AnimatePresence>
+        {filtrados.map((a, indice) => (
+          <FilaCatalogo
+            key={a.id}
+            indice={indice}
+            a={a}
+            m={mejor(datos, a.id)}
+            foto={imagenes.foto(a.id)}
+            abierta={abierto === a.id}
+            onAbrir={(id) => setAbierto(id)}
+            onVerFoto={() => setVisor({ artId: a.id })}
+            onVerFicha={() => nav.ir({ n: 'ficha', id: a.id })}
+            onEditar={() => {
+              setAbierto(null)
+              setDlg({ tipo: 'editArt', id: a.id })
+            }}
+          />
+        ))}
+      </AnimatePresence>
 
       {/* Hueco al pie: sin él, la última fila queda pegada a la barra de
           pestañas. */}
@@ -183,6 +187,7 @@ export const Catalogo = ({ estiramiento }: { estiramiento: MotionValue<number> }
 const MUELLE = { type: 'spring', stiffness: 500, damping: 40 } as const
 
 const FilaCatalogo = ({
+  indice,
   a,
   m,
   foto,
@@ -192,6 +197,7 @@ const FilaCatalogo = ({
   onVerFicha,
   onEditar,
 }: {
+  indice: number
   a: Articulo
   m: Precio | null
   foto: string | undefined
@@ -216,6 +222,17 @@ const FilaCatalogo = ({
   }
 
   return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, height: 0 }}
+      animate={{
+        opacity: 1,
+        height: 'auto',
+        transition: { delay: indice * 0.035, ...MUELLE },
+      }}
+      exit={{ opacity: 0, height: 0, transition: { duration: 0.18 } }}
+      style={{ overflow: 'hidden' }}
+    >
     <div style={{ position: 'relative', overflow: 'hidden' }}>
       <button
         onClick={onEditar}
@@ -315,5 +332,6 @@ const FilaCatalogo = ({
         </button>
       </motion.div>
     </div>
+    </motion.div>
   )
 }
