@@ -33,12 +33,12 @@ export const App = () => {
   const { hayNueva } = useVersionNueva()
 
   // Sombra bajo la cabecera en cuanto el contenido se ha desplazado, como la
-  // elevación del AppBarLayout de Android. Solo en el detalle de lista, que
-  // es donde se pensó (ver docs/gestos-lista-swipe.md); las demás pantallas
-  // no lo llevan todavía.
+  // elevación del AppBarLayout de Android. En el detalle de lista y el
+  // catálogo, que son las dos pantallas con swipe horizontal (ver
+  // docs/gestos-lista-swipe.md); las demás no lo llevan todavía.
   const [scrolled, setScrolled] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const conGestos = nav.ruta.n === 'lista'
+  const conGestos = nav.ruta.n === 'lista' || nav.ruta.n === 'articulos'
   const estiramiento = useEstiramiento(scrollRef, conGestos)
 
   return (
@@ -96,8 +96,8 @@ export const App = () => {
                     nativo de pull-to-refresh. `contain` para el scroll
                     chaining aquí mismo, así el gesto no se propaga al
                     documento y el navegador no lo interpreta como
-                    «refrescar». Solo en el detalle de lista, igual que el
-                    resto de los efectos de esta pantalla.
+                    «refrescar». Solo en las pantallas con `conGestos`,
+                    igual que el resto de estos efectos.
                   */
                   ...(conGestos ? { overscrollBehaviorY: 'contain' as const } : null),
                 }}

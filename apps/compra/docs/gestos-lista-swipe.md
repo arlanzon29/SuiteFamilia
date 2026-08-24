@@ -16,6 +16,19 @@ merece la pena repetir ese mismo paso: clonar la pantalla, cablear una ruta
 de prueba temporal con un acceso desde Ajustes, probar en el móvil, y solo
 entonces fundir el resultado en la pantalla real.
 
+**Dónde está aplicado, además del detalle de lista:**
+
+- **Catálogo** (`Catalogo.tsx`, esta misma app): swipe horizontal completo
+  (§1) con lápiz en vez de papelera —edita en vez de borrar—, más los
+  efectos de scroll vertical (§3-5). Sin la animación de colapso al borrar
+  (§2): el catálogo no borra artículos desde la fila.
+- **Pendientes** (`apps/pendientes`, app aparte): solo los efectos de scroll
+  vertical (§3-5) en la lista de pendientes, **sin** swipe horizontal — ahí
+  no hay ninguna acción de fila que revelar. El hook `useEstiramiento` se
+  copió tal cual (es genérico, no depende de nada de esta app); el resto
+  —`overscroll-behavior`, sombra de cabecera— se repitió a mano porque cada
+  app tiene su propio `App.tsx` y `Cabecera.tsx`.
+
 ---
 
 ## 1. Swipe-to-delete en cada fila

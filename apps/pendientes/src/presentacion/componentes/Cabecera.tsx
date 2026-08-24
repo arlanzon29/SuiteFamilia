@@ -26,10 +26,18 @@ export const Cabecera = ({
   kicker,
   titulo,
   onEditar,
+  elevada,
 }: {
   kicker: string
   titulo: string
   onEditar?: () => void
+  /**
+   * Sombra bajo la cabecera cuando el contenido se ha desplazado hacia
+   * arriba, como el `AppBarLayout` de Android. La activa `App.tsx` según la
+   * ruta. Mismo patrón que en la app de compra —ver
+   * `../../compra/docs/gestos-lista-swipe.md` §5.
+   */
+  elevada?: boolean
 }) => {
   const { nav, tema } = useApp()
   const hayAtras = tienePila(nav.ruta)
@@ -43,6 +51,10 @@ export const Cabecera = ({
         padding: '14px 14px 12px',
         borderBottom: '1px solid var(--color-divider)',
         flex: 'none',
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: elevada ? 'var(--shadow-sm)' : 'none',
+        transition: 'box-shadow 0.15s ease-out',
       }}
     >
       {hayAtras && (
