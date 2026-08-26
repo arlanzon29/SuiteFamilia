@@ -4,7 +4,7 @@ import { Miniatura } from '../componentes/Miniatura'
 import { useApp } from '../estado/AppProvider'
 import type { Conocimiento } from '../../dominio/modelo'
 import { fechaLarga } from '../formato'
-import { IconoAutor, IconoBorrar, IconoEnlace, IconoMas } from '../iconos'
+import { IconoAutor, IconoBorrar, IconoCamara, IconoEnlace, IconoFoto } from '../iconos'
 
 /**
  * La ficha no lee de una instantánea: pide su propio conocimiento por id, y
@@ -152,10 +152,17 @@ export const Ficha = ({ id }: { id: string }) => {
               </button>
             </div>
           ))}
+          {/*
+            Dos cuadros, no uno: como en el catálogo de la compra, «hacer
+            foto» y «elegir del carrete» son gestos distintos y el segundo no
+            puede quedar escondido detrás del primero. `pideFoto` ya sabía
+            abrir la cámara (el `capture` del input es el mismo mecanismo que
+            usa la compra); solo faltaba un botón que lo pidiera.
+          */}
           <button
-            onClick={() => galeria.pideFoto(id, false)}
+            onClick={() => galeria.pideFoto(id, true)}
             disabled={subiendo}
-            aria-label="Añadir foto"
+            aria-label="Hacer foto"
             style={{
               width: 76,
               height: 76,
@@ -168,7 +175,25 @@ export const Ficha = ({ id }: { id: string }) => {
               color: 'var(--color-neutral-600)',
             }}
           >
-            {subiendo ? '…' : <IconoMas size={22} />}
+            {subiendo ? '…' : <IconoCamara size={22} />}
+          </button>
+          <button
+            onClick={() => galeria.pideFoto(id, false)}
+            disabled={subiendo}
+            aria-label="Elegir del carrete"
+            style={{
+              width: 76,
+              height: 76,
+              flex: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px dashed var(--color-divider)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-neutral-600)',
+            }}
+          >
+            {subiendo ? '…' : <IconoFoto size={22} />}
           </button>
         </div>
       </div>
