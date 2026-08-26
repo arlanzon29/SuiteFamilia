@@ -15,7 +15,7 @@ import { MOSTRAR_TOTAL_LISTA } from '../config'
 import { eur } from '../formato'
 import { Miniatura } from '../componentes/Miniatura'
 import { Aviso, textoError } from '../componentes/Aviso'
-import { IconoAvanzar, IconoBorrar, IconoMas } from '../iconos'
+import { IconoAvanzar, IconoBorrar, IconoMas, IconoMenos } from '../iconos'
 
 /**
  * La pantalla que se usa en la tienda.
@@ -193,6 +193,9 @@ export const DetalleLista = ({
                       setAbierto(null)
                       intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, 0))
                     }}
+                    onCambiarCantidad={(cant) =>
+                      intenta(it.artId, () => acciones.cambiarCantidad(actual.id, it.artId, cant))
+                    }
                     onVerFicha={() => nav.ir({ n: 'ficha', id: it.artId })}
                     fallo={fallo?.clave === it.artId ? fallo.texto : undefined}
                   />
@@ -307,6 +310,7 @@ const FilaArticulo = ({
   onVerFoto,
   onAlternar,
   onEliminar,
+  onCambiarCantidad,
   onVerFicha,
   fallo,
 }: {
@@ -322,6 +326,8 @@ const FilaArticulo = ({
   onVerFoto: () => void
   onAlternar: () => void
   onEliminar: () => void
+  /** `cant` es la cantidad resultante, no un incremento (ver `cambiarCantidad`). */
+  onCambiarCantidad: (cant: number) => void
   onVerFicha: () => void
   fallo?: string
 }) => {
@@ -514,6 +520,62 @@ const FilaArticulo = ({
                 </span>
               </span>
             </button>
+
+            {/*
+              Los dos controles de cantidad van APILADOS en una sola columna:
+              en fila gastaban 92px de ancho y el nombre del artículo se
+              quedaba corto, que es lo que hay que leer de un vistazo en el
+              pasillo. Apilados gastan 46.
+
+              El + arriba a propósito: es el que más se pulsa, y la mitad de
+              arriba de la fila queda más cerca del pulgar cuando la lista se
+              recorre de arriba abajo.
+
+              Bajar de 1 a 0 quita el artículo (misma regla que el swipe):
+              `cambiarCantidad` ya la aplica sola, así que aquí no hay que
+              distinguir el caso.
+            */}
+            {!bloqueada && (
+              <div
+                style={{
+                  width: 46,
+                  flex: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderLeft: '1px solid var(--color-divider)',
+                }}
+              >
+                <button
+                  onClick={() => onCambiarCantidad(it.cant + 1)}
+                  aria-label="Una unidad más"
+                  style={{
+                    flex: 1,
+                    minHeight: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  <IconoMas size={18} />
+                </button>
+                <button
+                  onClick={() => onCambiarCantidad(it.cant - 1)}
+                  aria-label={it.cant > 1 ? 'Una unidad menos' : 'Quitar de la lista'}
+                  style={{
+                    flex: 1,
+                    minHeight: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--color-accent)',
+                    borderTop: '1px solid var(--color-divider)',
+                  }}
+                >
+                  <IconoMenos size={18} />
+                </button>
+              </div>
+            )}
 
             <button
               onClick={onVerFicha}
